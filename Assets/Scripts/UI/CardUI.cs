@@ -11,6 +11,7 @@ public class CardUI : MonoBehaviour
     public Image cardImage;
     public TextMeshProUGUI rankText;
     public TextMeshProUGUI suitText;
+
     public void Setup(CardData data)
     {
         cardData = data;
@@ -23,6 +24,7 @@ public class CardUI : MonoBehaviour
 
         if (suitText != null)
             suitText.text = cardData.suit.ToString();
+
     }
 
 }
