@@ -255,6 +255,68 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 374950959}
   m_CullTransparentMesh: 1
+--- !u!1 &453593866
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 453593867}
+  - component: {fileID: 453593868}
+  m_Layer: 5
+  m_Name: OpponentCardsHolder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &453593867
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 453593866}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 541602122}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 321}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &453593868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 453593866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.HorizontalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 3
+  m_Spacing: 100
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -487,7 +549,9 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 374950960}
-  - {fileID: 1960106662}
+  - {fileID: 1694431499}
+  - {fileID: 453593867}
+  - {fileID: 1779912306}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -579,7 +643,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1960106661
+--- !u!1 &1085654757
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -587,22 +651,185 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1960106662}
-  - component: {fileID: 1960106663}
-  m_Layer: 5
-  m_Name: CardPrefab
+  - component: {fileID: 1085654759}
+  - component: {fileID: 1085654758}
+  m_Layer: 0
+  m_Name: GameManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!224 &1960106662
+--- !u!114 &1085654758
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1085654757}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0096b27dcf9bc4c4eab6607debf5960d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameManager
+  cardPrefab: {fileID: 6170852132776693378, guid: b82f694a8c1dd9f499b7254e8905bc6c, type: 3}
+  playerCardsHolder: {fileID: 1694431499}
+  opponentCardsHolder: {fileID: 453593867}
+  communityCardsHolder: {fileID: 1779912306}
+  cardSprites:
+  - {fileID: 7024648501981196136, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -1145144668836272637, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 8963368785945452489, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -7415955986125602904, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -2922113337684369405, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 5610456433865955097, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 3929718611160277314, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -657809462729225012, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 2364552672744995599, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -8096500043677648198, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 2975849240591541955, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 8948946568479395471, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 4758714507323444636, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -5167807243808128219, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -16766654373697830, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -7800158105638691855, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -8556299364840717992, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -1940207476627441729, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 1284359971937205589, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -3580507101572198253, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 2488537912807060428, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -3901309678650635185, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 3937048335420172050, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -3171552581871247763, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 6063370347128411930, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 7028969208027117126, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -7182693308199855722, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 4814097024476456207, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -2308181474713450840, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 2604546506443664060, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -2655269575169651152, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -2824835690293362544, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -8805606262763575334, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 5961124822425904400, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 4455764603347038000, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -8927645303992860273, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -5239732119715374286, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 372690822399719181, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 836262810560953326, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -5622938358748693357, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 5428176494171219322, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 6301238216690363317, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -1211628213967472314, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -7915031600349434222, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 4958818493625077012, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -3948453097499792371, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 5290588743308969707, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 169192603580198629, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -6909439522300200184, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 5125170831202582444, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: 7632975744399105376, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  - {fileID: -1304566618446825538, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+--- !u!4 &1085654759
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1085654757}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1694431498
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1694431499}
+  - component: {fileID: 1694431500}
+  m_Layer: 5
+  m_Name: PlayerCardsHolder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1694431499
 RectTransform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1960106661}
+  m_GameObject: {fileID: 1694431498}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 541602122}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: -321}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1694431500
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1694431498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.HorizontalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 3
+  m_Spacing: 100
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
+--- !u!1 &1779912305
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1779912306}
+  - component: {fileID: 1779912307}
+  m_Layer: 5
+  m_Name: CommunityCardsHolder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1779912306
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1779912305}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -615,22 +842,32 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1960106663
+--- !u!114 &1779912307
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1960106661}
+  m_GameObject: {fileID: 1779912305}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2d6a8548c35418d4382ea2f1f13df3f5, type: 3}
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CardUI
-  cardData: {fileID: 0}
-  cardImage: {fileID: 0}
-  rankText: {fileID: 0}
-  suitText: {fileID: 0}
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.HorizontalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 3
+  m_Spacing: 100
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1 &2058636188
 GameObject:
   m_ObjectHideFlags: 0
@@ -718,3 +955,4 @@ SceneRoots:
   - {fileID: 619394802}
   - {fileID: 541602122}
   - {fileID: 2058636191}
+  - {fileID: 1085654759}
