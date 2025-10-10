@@ -10,17 +10,30 @@ public class GameManager : MonoBehaviour
     public Transform communityCardsHolder;
     public Sprite[] cardSprites;
 
-    private List<CardData> deck = new List<CardData>();
-    private List<CardData> playerCards = new List<CardData>();
-    private List<CardData> opponentCards = new List<CardData>();
-    private List<CardData> communityCards = new List<CardData>();
+    private readonly List<CardData> deck = new();
+    private readonly List<CardData> playerCardList = new();
+    private readonly List<CardData> opponentCardList = new();
+    private readonly List<CardData> communityCardList = new();
 
+    public static GameManager Instance { get; private set; } 
+
+    private void Awake()
+    {
+        // make the game manager as a singleton
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        CreateDeck();
+    }
     void Start()
     {
-        CreateDeck();
         ShuffleDeck();
         DealHoleCards();
-        DealCommunityCards(3);
     }
 
     public void ResetButton()
@@ -28,7 +41,11 @@ public class GameManager : MonoBehaviour
         ClearAllCardHolders();
         ShuffleDeck();
         DealHoleCards();
-        DealCommunityCards(5);
+    }
+
+    public void TestButton()
+    {
+        DealCommunityCards(1);
     }
 
     // this will execute only one time at the very beginning
@@ -55,9 +72,9 @@ public class GameManager : MonoBehaviour
     void ClearAllCardHolders()
     {
         // cards in holders go back to deck
-        deck.AddRange(playerCards);
-        deck.AddRange(opponentCards);
-        deck.AddRange(communityCards);
+        deck.AddRange(playerCardList);
+        deck.AddRange(opponentCardList);
+        deck.AddRange(communityCardList);
 
         // destroying game objects
         for (int i = playerCardsHolder.childCount - 1; i >= 0; i--)
@@ -76,9 +93,9 @@ public class GameManager : MonoBehaviour
         }
 
         // clearing the lists
-        playerCards.Clear();
-        opponentCards.Clear();
-        communityCards.Clear();
+        playerCardList.Clear();
+        opponentCardList.Clear();
+        communityCardList.Clear();
     }
     void ShuffleDeck()
     {
@@ -97,11 +114,12 @@ public class GameManager : MonoBehaviour
     void DisplayCard(CardData cardData, Transform holder)
     {
         GameObject cardObject = Instantiate(cardPrefab, holder);
-        CardUI cardComponent = cardObject.GetComponent<CardUI>();
-        if (cardComponent != null)
-        {
-            cardComponent.Setup(cardData);
-        }
+        //CardUI cardComponent = cardObject.GetComponent<CardUI>();
+        //if (cardComponent != null)
+        //{
+        //    cardComponent.Setup(cardData);
+        //}
+        cardObject.GetComponent<CardUI>().Setup(cardData);
     }
     private CardData DrawCard()
     {
@@ -117,12 +135,12 @@ public class GameManager : MonoBehaviour
         {
             // Player
             CardData playerCard = DrawCard();
-            playerCards.Add(playerCard);
+            playerCardList.Add(playerCard);
             DisplayCard(playerCard, playerCardsHolder);
 
             // Opponent
             CardData opponentCard = DrawCard();
-            opponentCards.Add(opponentCard);
+            opponentCardList.Add(opponentCard);
             DisplayCard(opponentCard, opponentCardsHolder);
         }
     }
@@ -130,21 +148,29 @@ public class GameManager : MonoBehaviour
     // deal 3, 1, 1
     void DealCommunityCards(int num)
     {
-        for (int i = 0; i < num; i++)
+        if (communityCardList.Count < 5)
         {
-            CardData card = DrawCard();
-            communityCards.Add(card);
-            DisplayCard(card, communityCardsHolder);
+            for (int i = 0; i < num; i++)
+            {
+                CardData card = DrawCard();
+                communityCardList.Add(card);
+                DisplayCard(card, communityCardsHolder);
+            }
         }
+        else
+        {
+            Debug.Log("Community card can have max 5 cards");
+        }
+       
     }
     // ============================== /deal cards ==============================
 
 
     public List<CardData> GetAllCards(List<CardData> holeCards)
     {
-        List<CardData> allCards = new List<CardData>();
+        List<CardData> allCards = new();
         allCards.AddRange(holeCards);
-        allCards.AddRange(communityCards);
+        allCards.AddRange(communityCardList);
         return allCards;
     }
 
