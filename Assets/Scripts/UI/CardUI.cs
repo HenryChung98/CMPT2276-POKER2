@@ -12,19 +12,44 @@ public class CardUI : MonoBehaviour
     public TextMeshProUGUI rankText;
     public TextMeshProUGUI suitText;
 
-    public void Setup(CardData data)
+    [Header("Appearance")]
+    public Sprite cardBackSprite;
+
+    private bool isFaceDown = false;
+
+    public void Setup(CardData data, bool faceDown = false)
     {
         cardData = data;
-
-        if (cardImage != null && cardData.cardImage != null)
-            cardImage.sprite = cardData.cardImage;
-
-        if (rankText != null)
-            rankText.text = cardData.rank.ToString();
-
-        if (suitText != null)
-            suitText.text = cardData.suit.ToString();
-
+        isFaceDown = faceDown;
+        Refresh();
     }
 
+    public void SetFaceDown(bool faceDown)
+    {
+        isFaceDown = faceDown;
+        Refresh();
+    }
+
+    private void Refresh()
+    {
+        if (isFaceDown)
+        {
+            if (cardImage != null && cardBackSprite != null)
+                cardImage.sprite = cardBackSprite;
+
+            if (rankText != null) rankText.text = "";
+            if (suitText != null) suitText.text = "";
+        }
+        else
+        {
+            if (cardImage != null && cardData.cardImage != null)
+                cardImage.sprite = cardData.cardImage;
+
+            if (rankText != null)
+                rankText.text = cardData.rank.ToString();
+
+            if (suitText != null)
+                suitText.text = cardData.suit.ToString();
+        }
+    }
 }
