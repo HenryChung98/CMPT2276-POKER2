@@ -726,7 +726,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1085654758}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: TestButton
+        m_MethodName: CheckHighCard
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -860,6 +860,13 @@ MonoBehaviour:
   - {fileID: 5125170831202582444, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
   - {fileID: 7632975744399105376, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
   - {fileID: -1304566618446825538, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
+  cardBackSprite: {fileID: 0}
+  statusText: {fileID: 0}
+  potText: {fileID: 0}
+  bankText: {fileID: 0}
+  oppBankText: {fileID: 0}
+  playerChips: 1000
+  opponentChips: 1000
 --- !u!4 &1085654759
 Transform:
   m_ObjectHideFlags: 0
@@ -1169,7 +1176,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -6, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1985449722
