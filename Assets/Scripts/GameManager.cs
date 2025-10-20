@@ -15,11 +15,9 @@ public class GameManager : MonoBehaviour
     public Transform communityCardsHolder;
 
     [Header("UI")]
-    public TextMeshProUGUI statusText;   // drag a TMP Text here
-    public TextMeshProUGUI potText;      // drag a TMP Text here
-    public TextMeshProUGUI playerBankText;     // drag a TMP Text here (player bank)
-    public TextMeshProUGUI oppBankText;  // drag a TMP Text here (opponent bank)
-
+    public TextMeshProUGUI potText;      
+    public TextMeshProUGUI playerBankText;     
+    public TextMeshProUGUI oppBankText; 
     // player objects
     private Player player;
     private Player opponent;
@@ -88,7 +86,6 @@ public class GameManager : MonoBehaviour
     // for debugging
     private void SetStatus(string msg)
     {
-        if (statusText != null) statusText.text = msg;
         Debug.Log(msg);
     }
 
