@@ -4,15 +4,15 @@ using TMPro;
 
 public class GameManager : MonoBehaviour
 {
-
-
     [Header("Card Setup")]
     public GameObject cardPrefab;
+    public Sprite[] cardSprites;
+    public Sprite cardBackSprite;
+
+    [Header("Card Holders")]
     public Transform playerCardsHolder;
     public Transform opponentCardsHolder;
     public Transform communityCardsHolder;
-    public Sprite[] cardSprites;
-    public Sprite cardBackSprite; // NEW: for hiding opponent cards
 
     [Header("UI")]
     public TextMeshProUGUI statusText;   // drag a TMP Text here
@@ -199,11 +199,10 @@ public class GameManager : MonoBehaviour
             // Opponent (HIDDEN until showdown)
             CardData opponentCard = DrawCard();
             opponent.HoleCards.Add(opponentCard);
-            DisplayCard(opponentCard, opponentCardsHolder, true);
+            DisplayCard(opponentCard, opponentCardsHolder);
         }
     }
 
-    // deal 3, 1, 1
     void DealCommunityCards(int num)
     {
         if (communityCardList.Count >= 5)
@@ -229,14 +228,14 @@ public class GameManager : MonoBehaviour
         return allCards;
     }
 
-    private void RevealOpponentCards()
-    {
-        for (int i = 0; i < opponentCardsHolder.childCount; i++)
-        {
-            var ui = opponentCardsHolder.GetChild(i).GetComponent<CardUI>();
-            ui.SetFaceDown(false);
-        }
-    }
+    //private void RevealOpponentCards()
+    //{
+    //    for (int i = 0; i < opponentCardsHolder.childCount; i++)
+    //    {
+    //        var ui = opponentCardsHolder.GetChild(i).GetComponent<CardUI>();
+    //        ui.SetFaceDown(false);
+    //    }
+    //}
 
     private void PrintIfRank(HandRank target)
     {
@@ -247,22 +246,16 @@ public class GameManager : MonoBehaviour
             SetStatus($"You currently have: {res.Description}");
     }
 
-    private void PayoutToPlayer(int amount)
+    private void PayoutChips(Player player, int amount)
     {
         player.Chips += amount;
-        UpdateMoneyUI();
-    }
-
-    private void PayoutToOpponent(int amount)
-    {
-        opponent.Chips += amount;
         UpdateMoneyUI();
     }
 
     public void Showdown()
     {
         // Must have 5 community cards to showdown; but still allow with fewer for testing.
-        RevealOpponentCards();
+        //RevealOpponentCards();
 
         var playerRes = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
         var opponentRes = PokerHandEvaluator.EvaluateBestHand(GetAllCards(opponent.HoleCards));
@@ -272,21 +265,21 @@ public class GameManager : MonoBehaviour
         if (cmp > 0)
         {
             SetStatus($"You win! {playerRes.Description} beats {opponentRes.Description}. +{pot} chips.");
-            PayoutToPlayer(pot);
+            PayoutChips(player, pot);
             pot = 0;
         }
         else if (cmp < 0)
         {
             SetStatus($"Opponent wins. {opponentRes.Description} beats {playerRes.Description}.");
-            PayoutToOpponent(pot);
+            PayoutChips(opponent, pot);
             pot = 0;
         }
         else
         {
             SetStatus($"Tie: {playerRes.Description} vs {opponentRes.Description}. Pot split.");
             int split = pot / 2;
-            PayoutToPlayer(split);
-            PayoutToOpponent(pot - split);
+            PayoutChips(player, split);
+            PayoutChips(opponent, pot - split);
             pot = 0;
         }
 

@@ -8,11 +8,11 @@ public class Player
     public int Chips { get; set; }
     public List<CardData> HoleCards { get; private set; }
     public Transform CardsHolder { get; private set; }
-
     public bool BetThisRound { get; private set; }
     public bool HasActed { get; private set; }
     public bool IsHuman { get; private set; }
 
+    // initializing player object
     public Player(int initialChips, Transform cardsHolder, bool isHuman)
     {
         Chips = initialChips;
