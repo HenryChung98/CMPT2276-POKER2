@@ -5,9 +5,9 @@ public class Player
 {
     public string Name { get; private set; }
     public bool IsHuman { get; private set; }
+    public Transform CardsHolder { get; private set; }
     public int Chips { get; set; }
     public List<CardData> HoleCards { get; set; }
-    public Transform CardsHolder { get; private set; }
     public int BetThisRound { get; set; }
     public bool HasActed { get; set; }
 
@@ -33,7 +33,7 @@ public class Player
         int actualBet = Mathf.Min(amount, Chips); 
         Chips -= actualBet;
         BetThisRound += actualBet;
-        HasActed = true;
+        Debug.Log($"{this.Name} bet {BetThisRound} this round");
         return actualBet;
     }
 

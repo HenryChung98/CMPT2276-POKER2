@@ -15,9 +15,7 @@ public class GameManager : MonoBehaviour
     public Transform communityCardsHolder;
 
     [Header("UI")]
-    public TextMeshProUGUI potText;      
-    public TextMeshProUGUI playerBankText;     
-    public TextMeshProUGUI oppBankText; 
+    public UIManager uiManager;
 
     // player objects
     private Player player;
@@ -29,10 +27,9 @@ public class GameManager : MonoBehaviour
     private readonly List<CardData> deck = new();
     private readonly List<CardData> communityCardList = new();
 
-    // etc
-    private readonly int smallBlind = 5;
-    private readonly int bigBlind = 10;
-    private int pot = 0;
+    // managers
+    private BettingManager bettingManager;
+    private DeckManager deckManager;
 
     public static GameManager Instance { get; private set; }
 
@@ -47,9 +44,12 @@ public class GameManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        CreateDeck(); // create deck one time at the very beginning
-        
-        // initialize players
+        // initialize managers
+        deckManager = new DeckManager(cardSprites);
+        bettingManager = new BettingManager();
+
+        // initialize objects
+        deckManager.CreateDeck();
         player = new Player("player", 1000, playerCardsHolder, true);
         opponent = new Player("opponent", 1000, opponentCardsHolder, false);
         
@@ -58,29 +58,37 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        ShuffleDeck();
+        deckManager.Shuffle();
         DealHoleCards();
         PostBlind();
         UpdateMoneyUI();
-        Debug.Log("New hand. Place a bet or deal community cards.");
     }
+
+    // ============================= rendering UIs =============================
+    private void UpdateMoneyUI()
+    {
+        uiManager.UpdateMoneyUI(bettingManager.Pot, player.Chips, opponent.Chips);
+    }
+
 
     // ---------------- Buttons you can hook in the Inspector ----------------
     public void ResetButton()
     {
         ClearAllCardHolders();
-        ShuffleDeck();
+        deckManager.Shuffle();
         DealHoleCards();
 
         player.ResetStatus();
         opponent.ResetStatus();
-        
-        pot = 0;
+        bettingManager.ResetPot();
+
         PostBlind();
+        player.Chips = 1000;
+        opponent.Chips = 1000;
+
         UpdateMoneyUI();
-        Debug.Log("Reset. New hand.");
+
     }
-    public void InitialCallButton() { PlaceBet(bigBlind - smallBlind); }
 
     public void TestDealCommunityCard() { DealCommunityCards(1); }
     public void CheckHand()
@@ -89,65 +97,45 @@ public class GameManager : MonoBehaviour
         Debug.Log($"You currently have: {res.Description}");
     }
 
-    // ----------------------------------------------------------------------
-
-    private void PostBlind()
+    public void PlayerCallButton()
     {
-        int next = (dealerIndex + 1) % players.Count;
-
-        pot += players[dealerIndex].Bet(smallBlind);
-        Debug.Log($"{players[dealerIndex].Name}(dealer) post small blind");
-
-        pot += players[next].Bet(bigBlind);
-        Debug.Log($"{players[next].Name} post big blind");
-        players[next].HasActed = true;
-
-        dealerIndex = next;
-    }
-
-    private void UpdateMoneyUI()
-    {
-        if (potText != null) potText.text = $"Pot: {pot}";
-        if (playerBankText != null) playerBankText.text = $"You: {player.Chips}";
-        if (oppBankText != null) oppBankText.text = $"Opponent: {opponent.Chips}";
-    }
-
-    // ============================== logics for handling deck or reset cards ==============================
-
-    // this will execute only one time at the very beginning
-    void CreateDeck()
-    {
-        int spriteIndex = 0;
-        foreach (Suit suit in System.Enum.GetValues(typeof(Suit)))
+        if (player.HasActed != true)
         {
-            foreach (Rank rank in System.Enum.GetValues(typeof(Rank)))
-            {
-                CardData cardData = ScriptableObject.CreateInstance<CardData>();
-                cardData.suit = suit;
-                cardData.rank = rank;
-                cardData.cardImage = cardSprites[spriteIndex];
-                deck.Add(cardData);
-                spriteIndex++;
-            }
+            int amount = opponent.BetThisRound - player.BetThisRound > 0 ? opponent.BetThisRound - player.BetThisRound : 0;
+            Call(player, amount);
+        }
+        else
+        {
+            Debug.Log("player has acted.");
         }
     }
 
+    public void OpponentCallButton()
+    {
+        if (opponent.HasActed != true)
+        {
+            int amount = player.BetThisRound - opponent.BetThisRound > 0 ? player.BetThisRound - opponent.BetThisRound : 0;
+            Call(opponent, amount);
+        }
+        else
+        {
+            Debug.Log("opponent has acted.");
+        }
+    }
+
+    // ----------------------------------------------------------------------
+
     void ClearAllCardHolders()
     {
-        // cards in holders go back to deck
-        deck.AddRange(player.HoleCards);
-        deck.AddRange(opponent.HoleCards);
-        deck.AddRange(communityCardList);
+        // cards in holders go back to deck (copy the list elements from hole to deck)
+        deckManager.ReturnCards(player.HoleCards);
+        deckManager.ReturnCards(opponent.HoleCards);
+        deckManager.ReturnCards(communityCardList);
 
-        // destroying game objects
-        for (int i = playerCardsHolder.childCount - 1; i >= 0; i--)
-            Destroy(playerCardsHolder.GetChild(i).gameObject);
-
-        for (int i = opponentCardsHolder.childCount - 1; i >= 0; i--)
-            Destroy(opponentCardsHolder.GetChild(i).gameObject);
-
-        for (int i = communityCardsHolder.childCount - 1; i >= 0; i--)
-            Destroy(communityCardsHolder.GetChild(i).gameObject);
+        // destroying game objects (UI)
+        uiManager.ClearCardHolder(playerCardsHolder);
+        uiManager.ClearCardHolder(opponentCardsHolder);
+        uiManager.ClearCardHolder(communityCardsHolder);
 
         // clearing the lists
         player.HoleCards.Clear();
@@ -155,53 +143,40 @@ public class GameManager : MonoBehaviour
         communityCardList.Clear();
     }
 
-    void ShuffleDeck()
-    {
-        for (int i = 0; i < deck.Count; i++)
-        {
-            CardData temp = deck[i];
-            int randomIndex = Random.Range(i, deck.Count);
-            deck[i] = deck[randomIndex];
-            deck[randomIndex] = temp;
-        }
-    }
-    // ============================== /logics for handling deck or reset cards ==============================
 
-    // ============================== deal cards ==============================
-
-    // render cards
-    void DisplayCard(CardData cardData, Transform holder, bool faceDown = false)
+    public void Call(Player player, int amount)
     {
-        GameObject cardObject = Instantiate(cardPrefab, holder);
-        var ui = cardObject.GetComponent<CardUI>();
-        ui.cardBackSprite = cardBackSprite;
-        ui.Setup(cardData, faceDown);
+        bettingManager.Call(player, amount);
+        UpdateMoneyUI();
     }
 
-    private CardData DrawCard()
-    {
-        CardData card = deck[0];
-        deck.RemoveAt(0);
-        return card;
-    }
 
-    // pre-flop
+    // ============================= pre-flop =============================
     void DealHoleCards()
     {
         for (int i = 0; i < 2; i++)
         {
             // player
-            CardData playerCard = DrawCard();
+            CardData playerCard = deckManager.DrawCard();
             player.HoleCards.Add(playerCard);
-            DisplayCard(playerCard, playerCardsHolder);
+            uiManager.DisplayCard(playerCard, playerCardsHolder);
 
             // opponent
-            CardData opponentCard = DrawCard();
+            CardData opponentCard = deckManager.DrawCard();
             opponent.HoleCards.Add(opponentCard);
-            DisplayCard(opponentCard, opponentCardsHolder);
+            uiManager.DisplayCard(opponentCard, opponentCardsHolder);
         }
     }
+    private void PostBlind()
+    {
+        bettingManager.PostBlind(players, dealerIndex);
+        dealerIndex = (dealerIndex + 1) % players.Count;
+    }
+    // ============================= /pre-flop =============================
 
+
+
+    // ============================= flop =============================
     void DealCommunityCards(int num)
     {
         if (communityCardList.Count >= 5)
@@ -212,49 +187,15 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < num && communityCardList.Count < 5; i++)
         {
-            CardData card = DrawCard();
+            CardData card = deckManager.DrawCard();
             communityCardList.Add(card);
-            DisplayCard(card, communityCardsHolder);
+            uiManager.DisplayCard(card, communityCardsHolder);
         }
     }
-    // ============================== /deal cards ==============================
+    // ============================= /flop =============================
 
-    //private void RevealOpponentCards()
-    //{
-    //    for (int i = 0; i < opponentCardsHolder.childCount; i++)
-    //    {
-    //        var ui = opponentCardsHolder.GetChild(i).GetComponent<CardUI>();
-    //        ui.SetFaceDown(false);
-    //    }
-    //}
 
-    // ============================== betting logics ==============================
-    private void PayoutChips(Player player, int amount)
-    {
-        player.Chips += amount;
-        UpdateMoneyUI();
-    }
-
-    public void PlaceBet(int amount)
-    {
-        if (!player.CanBet(amount))
-        {
-            Debug.Log("Not enough chips.");
-            return;
-        }
-        // player bets, opponent auto-calls (toy logic)
-        int playerBet = player.Bet(amount);
-        pot += playerBet;
-
-        int opponentBet = opponent.Bet(amount);
-        pot += opponentBet;
-
-        UpdateMoneyUI();
-        Debug.Log($"You bet {playerBet}. Opponent calls {opponentBet}. Pot is now {pot}.");
-    }
-
-    // ============================== /betting logics ==============================
-
+    // ============================= showdown =============================
 
     public List<CardData> GetAllCards(List<CardData> holeCards)
     {
@@ -266,7 +207,7 @@ public class GameManager : MonoBehaviour
 
     public void Showdown()
     {
-        //RevealOpponentCards();
+        //uiManager.RevealCards(opponentCardsHolder);
 
         var playerResult = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
         var opponentResult = PokerHandEvaluator.EvaluateBestHand(GetAllCards(opponent.HoleCards));
@@ -275,25 +216,26 @@ public class GameManager : MonoBehaviour
 
         if (cmp > 0)
         {
-            Debug.Log($"You win! {playerResult.Description} beats {opponentResult.Description}. +{pot} chips.");
-            PayoutChips(player, pot);
-            pot = 0;
+            Debug.Log($"You win! {playerResult.Description} beats {opponentResult.Description}. +{bettingManager.Pot} chips.");
+            bettingManager.PayoutChips(player, bettingManager.Pot);
+            bettingManager.ResetPot();
         }
         else if (cmp < 0)
         {
             Debug.Log($"Opponent wins. {opponentResult.Description} beats {playerResult.Description}.");
-            PayoutChips(opponent, pot);
-            pot = 0;
+            bettingManager.PayoutChips(opponent, bettingManager.Pot);
+            bettingManager.ResetPot();
         }
         else
         {
             Debug.Log($"Tie: {playerResult.Description} vs {opponentResult.Description}. Pot split.");
-            int split = pot / 2;
-            PayoutChips(player, split);
-            PayoutChips(opponent, pot - split);
-            pot = 0;
+            int split = bettingManager.Pot / 2;
+            bettingManager.PayoutChips(player, split);
+            bettingManager.PayoutChips(opponent, bettingManager.Pot - split);
+            bettingManager.ResetPot();
         }
 
         UpdateMoneyUI();
     }
+    // ============================= showdown =============================
 }
