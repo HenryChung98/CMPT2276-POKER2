@@ -191,12 +191,12 @@ public class GameManager : MonoBehaviour
     {
         for (int i = 0; i < 2; i++)
         {
-            // Player (face up)
+            // player
             CardData playerCard = DrawCard();
             player.HoleCards.Add(playerCard);
             DisplayCard(playerCard, playerCardsHolder);
 
-            // Opponent (HIDDEN until showdown)
+            // opponent
             CardData opponentCard = DrawCard();
             opponent.HoleCards.Add(opponentCard);
             DisplayCard(opponentCard, opponentCardsHolder);
@@ -254,29 +254,28 @@ public class GameManager : MonoBehaviour
 
     public void Showdown()
     {
-        // Must have 5 community cards to showdown; but still allow with fewer for testing.
         //RevealOpponentCards();
 
-        var playerRes = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
-        var opponentRes = PokerHandEvaluator.EvaluateBestHand(GetAllCards(opponent.HoleCards));
+        var playerResult = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
+        var opponentResult = PokerHandEvaluator.EvaluateBestHand(GetAllCards(opponent.HoleCards));
 
-        int cmp = PokerHandEvaluator.Compare(playerRes, opponentRes);
+        int cmp = PokerHandEvaluator.Compare(playerResult, opponentResult);
 
         if (cmp > 0)
         {
-            SetStatus($"You win! {playerRes.Description} beats {opponentRes.Description}. +{pot} chips.");
+            SetStatus($"You win! {playerResult.Description} beats {opponentResult.Description}. +{pot} chips.");
             PayoutChips(player, pot);
             pot = 0;
         }
         else if (cmp < 0)
         {
-            SetStatus($"Opponent wins. {opponentRes.Description} beats {playerRes.Description}.");
+            SetStatus($"Opponent wins. {opponentResult.Description} beats {playerResult.Description}.");
             PayoutChips(opponent, pot);
             pot = 0;
         }
         else
         {
-            SetStatus($"Tie: {playerRes.Description} vs {opponentRes.Description}. Pot split.");
+            SetStatus($"Tie: {playerResult.Description} vs {opponentResult.Description}. Pot split.");
             int split = pot / 2;
             PayoutChips(player, split);
             PayoutChips(opponent, pot - split);
