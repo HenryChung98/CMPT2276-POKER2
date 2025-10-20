@@ -18,18 +18,21 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI potText;      
     public TextMeshProUGUI playerBankText;     
     public TextMeshProUGUI oppBankText; 
+
     // player objects
     private Player player;
     private Player opponent;
-    private int pot = 0;
+    private List<Player> players;
+    private int dealerIndex = 0;
 
     // public cards
     private readonly List<CardData> deck = new();
     private readonly List<CardData> communityCardList = new();
 
-    // blinds
+    // etc
     private readonly int smallBlind = 5;
     private readonly int bigBlind = 10;
+    private int pot = 0;
 
     public static GameManager Instance { get; private set; }
 
@@ -44,17 +47,22 @@ public class GameManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        CreateDeck();
+        CreateDeck(); // create deck one time at the very beginning
+        
+        // initialize players
+        player = new Player("player", 1000, playerCardsHolder, true);
+        opponent = new Player("opponent", 1000, opponentCardsHolder, false);
+        
+        players = new List<Player> { player, opponent }; // to define a dealer
     }
 
     void Start()
     {
-        player = new Player(1000, playerCardsHolder, true);
-        opponent = new Player(1000, opponentCardsHolder, false);
         ShuffleDeck();
         DealHoleCards();
+        PostBlind();
         UpdateMoneyUI();
-        SetStatus("New hand. Place a bet or deal community cards.");
+        Debug.Log("New hand. Place a bet or deal community cards.");
     }
 
     // ---------------- Buttons you can hook in the Inspector ----------------
@@ -68,8 +76,9 @@ public class GameManager : MonoBehaviour
         opponent.ResetStatus();
         
         pot = 0;
+        PostBlind();
         UpdateMoneyUI();
-        SetStatus("Reset. New hand.");
+        Debug.Log("Reset. New hand.");
     }
     public void InitialCallButton() { PlaceBet(bigBlind - smallBlind); }
 
@@ -77,16 +86,23 @@ public class GameManager : MonoBehaviour
     public void CheckHand()
     {
         var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
-        SetStatus($"You currently have: {res.Description}");
+        Debug.Log($"You currently have: {res.Description}");
     }
 
     // ----------------------------------------------------------------------
 
-
-    // for debugging
-    private void SetStatus(string msg)
+    private void PostBlind()
     {
-        Debug.Log(msg);
+        int next = (dealerIndex + 1) % players.Count;
+
+        pot += players[dealerIndex].Bet(smallBlind);
+        Debug.Log($"{players[dealerIndex].Name}(dealer) post small blind");
+
+        pot += players[next].Bet(bigBlind);
+        Debug.Log($"{players[next].Name} post big blind");
+        players[next].HasActed = true;
+
+        dealerIndex = next;
     }
 
     private void UpdateMoneyUI()
@@ -190,7 +206,7 @@ public class GameManager : MonoBehaviour
     {
         if (communityCardList.Count >= 5)
         {
-            SetStatus("Community card can have max 5 cards");
+            Debug.Log("Community card can have max 5 cards");
             return;
         }
 
@@ -223,7 +239,7 @@ public class GameManager : MonoBehaviour
     {
         if (!player.CanBet(amount))
         {
-            SetStatus("Not enough chips.");
+            Debug.Log("Not enough chips.");
             return;
         }
         // player bets, opponent auto-calls (toy logic)
@@ -234,7 +250,7 @@ public class GameManager : MonoBehaviour
         pot += opponentBet;
 
         UpdateMoneyUI();
-        SetStatus($"You bet {playerBet}. Opponent calls {opponentBet}. Pot is now {pot}.");
+        Debug.Log($"You bet {playerBet}. Opponent calls {opponentBet}. Pot is now {pot}.");
     }
 
     // ============================== /betting logics ==============================
@@ -259,19 +275,19 @@ public class GameManager : MonoBehaviour
 
         if (cmp > 0)
         {
-            SetStatus($"You win! {playerResult.Description} beats {opponentResult.Description}. +{pot} chips.");
+            Debug.Log($"You win! {playerResult.Description} beats {opponentResult.Description}. +{pot} chips.");
             PayoutChips(player, pot);
             pot = 0;
         }
         else if (cmp < 0)
         {
-            SetStatus($"Opponent wins. {opponentResult.Description} beats {playerResult.Description}.");
+            Debug.Log($"Opponent wins. {opponentResult.Description} beats {playerResult.Description}.");
             PayoutChips(opponent, pot);
             pot = 0;
         }
         else
         {
-            SetStatus($"Tie: {playerResult.Description} vs {opponentResult.Description}. Pot split.");
+            Debug.Log($"Tie: {playerResult.Description} vs {opponentResult.Description}. Pot split.");
             int split = pot / 2;
             PayoutChips(player, split);
             PayoutChips(opponent, pot - split);

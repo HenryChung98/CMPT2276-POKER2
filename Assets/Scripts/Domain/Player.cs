@@ -3,16 +3,18 @@ using UnityEngine;
 
 public class Player
 {
+    public string Name { get; private set; }
     public bool IsHuman { get; private set; }
     public int Chips { get; set; }
-    public List<CardData> HoleCards { get; private set; }
+    public List<CardData> HoleCards { get; set; }
     public Transform CardsHolder { get; private set; }
-    public int BetThisRound { get; private set; }
-    public bool HasActed { get; private set; }
+    public int BetThisRound { get; set; }
+    public bool HasActed { get; set; }
 
     // initializing player object
-    public Player(int initialChips, Transform cardsHolder, bool isHuman)
+    public Player(string name, int initialChips, Transform cardsHolder, bool isHuman)
     {
+        Name = name;
         IsHuman = isHuman;
         Chips = initialChips;
         HoleCards = new List<CardData>();
