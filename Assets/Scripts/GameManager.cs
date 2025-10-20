@@ -17,7 +17,7 @@ public class GameManager : MonoBehaviour
     [Header("UI")]
     public TextMeshProUGUI statusText;   // drag a TMP Text here
     public TextMeshProUGUI potText;      // drag a TMP Text here
-    public TextMeshProUGUI bankText;     // drag a TMP Text here (player bank)
+    public TextMeshProUGUI playerBankText;     // drag a TMP Text here (player bank)
     public TextMeshProUGUI oppBankText;  // drag a TMP Text here (opponent bank)
 
     // player objects
@@ -28,6 +28,10 @@ public class GameManager : MonoBehaviour
     // public cards
     private readonly List<CardData> deck = new();
     private readonly List<CardData> communityCardList = new();
+
+    // blinds
+    private readonly int smallBlind = 5;
+    private readonly int bigBlind = 10;
 
     public static GameManager Instance { get; private set; }
 
@@ -61,14 +65,17 @@ public class GameManager : MonoBehaviour
         ClearAllCardHolders();
         ShuffleDeck();
         DealHoleCards();
+
+        player.ResetStatus();
+        opponent.ResetStatus();
+        
         pot = 0;
         UpdateMoneyUI();
         SetStatus("Reset. New hand.");
     }
-    public void Bet10Button() { PlaceBet(10); }
-    public void Bet50Button() { PlaceBet(50); }
-    public void Bet100Button() { PlaceBet(100); }
-    public void TestDealCommunityCard() { DealCommunityCards(3); }
+    public void InitialCallButton() { PlaceBet(bigBlind - smallBlind); }
+
+    public void TestDealCommunityCard() { DealCommunityCards(1); }
     public void CheckHand()
     {
         var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
@@ -88,7 +95,7 @@ public class GameManager : MonoBehaviour
     private void UpdateMoneyUI()
     {
         if (potText != null) potText.text = $"Pot: {pot}";
-        if (bankText != null) bankText.text = $"You: {player.Chips}";
+        if (playerBankText != null) playerBankText.text = $"You: {player.Chips}";
         if (oppBankText != null) oppBankText.text = $"Opponent: {opponent.Chips}";
     }
 
@@ -217,21 +224,20 @@ public class GameManager : MonoBehaviour
 
     public void PlaceBet(int amount)
     {
-        if (player.Chips < amount)
+        if (!player.CanBet(amount))
         {
             SetStatus("Not enough chips.");
             return;
         }
         // player bets, opponent auto-calls (toy logic)
-        player.Chips -= amount;
-        pot += amount;
+        int playerBet = player.Bet(amount);
+        pot += playerBet;
 
-        int call = Mathf.Min(opponent.Chips, amount);
-        opponent.Chips -= call;
-        pot += call;
+        int opponentBet = opponent.Bet(amount);
+        pot += opponentBet;
 
         UpdateMoneyUI();
-        SetStatus($"You bet {amount}. Opponent calls {call}. Pot is now {pot}.");
+        SetStatus($"You bet {playerBet}. Opponent calls {opponentBet}. Pot is now {pot}.");
     }
 
     // ============================== /betting logics ==============================
