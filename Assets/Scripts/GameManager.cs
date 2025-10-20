@@ -4,6 +4,8 @@ using TMPro;
 
 public class GameManager : MonoBehaviour
 {
+
+
     [Header("Card Setup")]
     public GameObject cardPrefab;
     public Transform playerCardsHolder;
@@ -18,14 +20,13 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI bankText;     // drag a TMP Text here (player bank)
     public TextMeshProUGUI oppBankText;  // drag a TMP Text here (opponent bank)
 
-    [Header("Bankrolls")]
-    public int playerChips = 1000;
-    public int opponentChips = 1000;
+    // player objects
+    private Player player;
+    private Player opponent;
     private int pot = 0;
 
+    // public cards
     private readonly List<CardData> deck = new();
-    private readonly List<CardData> playerCardList = new();
-    private readonly List<CardData> opponentCardList = new();
     private readonly List<CardData> communityCardList = new();
 
     public static GameManager Instance { get; private set; }
@@ -46,6 +47,8 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        player = new Player(1000, playerCardsHolder, true);
+        opponent = new Player(1000, opponentCardsHolder, false);
         ShuffleDeck();
         DealHoleCards();
         UpdateMoneyUI();
@@ -88,24 +91,24 @@ public class GameManager : MonoBehaviour
     private void UpdateMoneyUI()
     {
         if (potText != null) potText.text = $"Pot: {pot}";
-        if (bankText != null) bankText.text = $"You: {playerChips}";
-        if (oppBankText != null) oppBankText.text = $"Opponent: {opponentChips}";
+        if (bankText != null) bankText.text = $"You: {player.Chips}";
+        if (oppBankText != null) oppBankText.text = $"Opponent: {opponent.Chips}";
     }
     // ============================== update UIs ==============================
 
     public void PlaceBet(int amount)
     {
-        if (playerChips < amount)
+        if (player.Chips < amount)
         {
             SetStatus("Not enough chips.");
             return;
         }
         // player bets, opponent auto-calls (toy logic)
-        playerChips -= amount;
+        player.Chips -= amount;
         pot += amount;
 
-        int call = Mathf.Min(opponentChips, amount);
-        opponentChips -= call;
+        int call = Mathf.Min(opponent.Chips, amount);
+        opponent.Chips -= call;
         pot += call;
 
         UpdateMoneyUI();
@@ -134,8 +137,8 @@ public class GameManager : MonoBehaviour
     void ClearAllCardHolders()
     {
         // cards in holders go back to deck
-        deck.AddRange(playerCardList);
-        deck.AddRange(opponentCardList);
+        deck.AddRange(player.HoleCards);
+        deck.AddRange(opponent.HoleCards);
         deck.AddRange(communityCardList);
 
         // destroying game objects
@@ -149,8 +152,8 @@ public class GameManager : MonoBehaviour
             Destroy(communityCardsHolder.GetChild(i).gameObject);
 
         // clearing the lists
-        playerCardList.Clear();
-        opponentCardList.Clear();
+        player.HoleCards.Clear();
+        opponent.HoleCards.Clear();
         communityCardList.Clear();
     }
 
@@ -190,12 +193,12 @@ public class GameManager : MonoBehaviour
         {
             // Player (face up)
             CardData playerCard = DrawCard();
-            playerCardList.Add(playerCard);
-            DisplayCard(playerCard, playerCardsHolder, false);
+            player.HoleCards.Add(playerCard);
+            DisplayCard(playerCard, playerCardsHolder);
 
             // Opponent (HIDDEN until showdown)
             CardData opponentCard = DrawCard();
-            opponentCardList.Add(opponentCard);
+            opponent.HoleCards.Add(opponentCard);
             DisplayCard(opponentCard, opponentCardsHolder, true);
         }
     }
@@ -213,7 +216,7 @@ public class GameManager : MonoBehaviour
         {
             CardData card = DrawCard();
             communityCardList.Add(card);
-            DisplayCard(card, communityCardsHolder, false);
+            DisplayCard(card, communityCardsHolder);
         }
     }
     // ============================== /deal cards ==============================
@@ -237,7 +240,7 @@ public class GameManager : MonoBehaviour
 
     private void PrintIfRank(HandRank target)
     {
-        var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(playerCardList));
+        var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
         if (res.Rank == target)
             SetStatus(res.Description); // e.g., "One Pair (Aces) with kickers K, Q, 9"
         else
@@ -246,13 +249,13 @@ public class GameManager : MonoBehaviour
 
     private void PayoutToPlayer(int amount)
     {
-        playerChips += amount;
+        player.Chips += amount;
         UpdateMoneyUI();
     }
 
     private void PayoutToOpponent(int amount)
     {
-        opponentChips += amount;
+        opponent.Chips += amount;
         UpdateMoneyUI();
     }
 
@@ -261,8 +264,8 @@ public class GameManager : MonoBehaviour
         // Must have 5 community cards to showdown; but still allow with fewer for testing.
         RevealOpponentCards();
 
-        var playerRes = PokerHandEvaluator.EvaluateBestHand(GetAllCards(playerCardList));
-        var opponentRes = PokerHandEvaluator.EvaluateBestHand(GetAllCards(opponentCardList));
+        var playerRes = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
+        var opponentRes = PokerHandEvaluator.EvaluateBestHand(GetAllCards(opponent.HoleCards));
 
         int cmp = PokerHandEvaluator.Compare(playerRes, opponentRes);
 
