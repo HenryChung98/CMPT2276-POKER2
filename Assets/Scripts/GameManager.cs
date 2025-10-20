@@ -65,23 +65,20 @@ public class GameManager : MonoBehaviour
         UpdateMoneyUI();
         SetStatus("Reset. New hand.");
     }
-
-    public void TestButton() { DealCommunityCards(1); } // existing
-    public void DealFlopButton() { DealCommunityCards(3); }
-    public void DealTurnButton() { DealCommunityCards(1); }
-    public void DealRiverButton() { DealCommunityCards(1); }
     public void Bet10Button() { PlaceBet(10); }
     public void Bet50Button() { PlaceBet(50); }
     public void Bet100Button() { PlaceBet(100); }
+    public void TestDealCommunityCard() { DealCommunityCards(3); }
+    public void CheckHand()
+    {
+        var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
+        SetStatus($"You currently have: {res.Description}");
+    }
 
-    // Requested ¡§3 buttons¡¨: quick evaluators + showdown
-    public void CheckHighCard() { PrintIfRank(HandRank.HighCard); }
-    public void CheckOnePair() { PrintIfRank(HandRank.OnePair); }
-    public void ShowdownButton() { Showdown(); }
     // ----------------------------------------------------------------------
 
 
-    // ============================== update UIs ==============================
+    // for debugging
     private void SetStatus(string msg)
     {
         if (statusText != null) statusText.text = msg;
@@ -94,26 +91,8 @@ public class GameManager : MonoBehaviour
         if (bankText != null) bankText.text = $"You: {player.Chips}";
         if (oppBankText != null) oppBankText.text = $"Opponent: {opponent.Chips}";
     }
-    // ============================== update UIs ==============================
 
-    public void PlaceBet(int amount)
-    {
-        if (player.Chips < amount)
-        {
-            SetStatus("Not enough chips.");
-            return;
-        }
-        // player bets, opponent auto-calls (toy logic)
-        player.Chips -= amount;
-        pot += amount;
-
-        int call = Mathf.Min(opponent.Chips, amount);
-        opponent.Chips -= call;
-        pot += call;
-
-        UpdateMoneyUI();
-        SetStatus($"You bet {amount}. Opponent calls {call}. Pot is now {pot}.");
-    }
+    // ============================== logics for handling deck or reset cards ==============================
 
     // this will execute only one time at the very beginning
     void CreateDeck()
@@ -133,7 +112,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // this will execute every time when reset
     void ClearAllCardHolders()
     {
         // cards in holders go back to deck
@@ -167,6 +145,7 @@ public class GameManager : MonoBehaviour
             deck[randomIndex] = temp;
         }
     }
+    // ============================== /logics for handling deck or reset cards ==============================
 
     // ============================== deal cards ==============================
 
@@ -220,14 +199,6 @@ public class GameManager : MonoBehaviour
     }
     // ============================== /deal cards ==============================
 
-    public List<CardData> GetAllCards(List<CardData> holeCards)
-    {
-        List<CardData> allCards = new();
-        allCards.AddRange(holeCards);
-        allCards.AddRange(communityCardList);
-        return allCards;
-    }
-
     //private void RevealOpponentCards()
     //{
     //    for (int i = 0; i < opponentCardsHolder.childCount; i++)
@@ -237,19 +208,41 @@ public class GameManager : MonoBehaviour
     //    }
     //}
 
-    private void PrintIfRank(HandRank target)
-    {
-        var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
-        if (res.Rank == target)
-            SetStatus(res.Description); // e.g., "One Pair (Aces) with kickers K, Q, 9"
-        else
-            SetStatus($"You currently have: {res.Description}");
-    }
-
+    // ============================== betting logics ==============================
     private void PayoutChips(Player player, int amount)
     {
         player.Chips += amount;
         UpdateMoneyUI();
+    }
+
+    public void PlaceBet(int amount)
+    {
+        if (player.Chips < amount)
+        {
+            SetStatus("Not enough chips.");
+            return;
+        }
+        // player bets, opponent auto-calls (toy logic)
+        player.Chips -= amount;
+        pot += amount;
+
+        int call = Mathf.Min(opponent.Chips, amount);
+        opponent.Chips -= call;
+        pot += call;
+
+        UpdateMoneyUI();
+        SetStatus($"You bet {amount}. Opponent calls {call}. Pot is now {pot}.");
+    }
+
+    // ============================== /betting logics ==============================
+
+
+    public List<CardData> GetAllCards(List<CardData> holeCards)
+    {
+        List<CardData> allCards = new();
+        allCards.AddRange(holeCards);
+        allCards.AddRange(communityCardList);
+        return allCards;
     }
 
     public void Showdown()
