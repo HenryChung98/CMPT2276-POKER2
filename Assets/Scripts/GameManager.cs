@@ -77,6 +77,8 @@ public class GameManager : MonoBehaviour
     public void ShowdownButton() { Showdown(); }
     // ----------------------------------------------------------------------
 
+
+    // ============================== update UIs ==============================
     private void SetStatus(string msg)
     {
         if (statusText != null) statusText.text = msg;
@@ -89,6 +91,7 @@ public class GameManager : MonoBehaviour
         if (bankText != null) bankText.text = $"You: {playerChips}";
         if (oppBankText != null) oppBankText.text = $"Opponent: {opponentChips}";
     }
+    // ============================== update UIs ==============================
 
     public void PlaceBet(int amount)
     {

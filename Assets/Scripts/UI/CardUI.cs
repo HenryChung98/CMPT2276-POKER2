@@ -9,8 +9,6 @@ public class CardUI : MonoBehaviour
 
     [Header("UI Components")]
     public Image cardImage;
-    public TextMeshProUGUI rankText;
-    public TextMeshProUGUI suitText;
 
     [Header("Appearance")]
     public Sprite cardBackSprite;
@@ -36,20 +34,11 @@ public class CardUI : MonoBehaviour
         {
             if (cardImage != null && cardBackSprite != null)
                 cardImage.sprite = cardBackSprite;
-
-            if (rankText != null) rankText.text = "";
-            if (suitText != null) suitText.text = "";
         }
         else
         {
             if (cardImage != null && cardData.cardImage != null)
                 cardImage.sprite = cardData.cardImage;
-
-            if (rankText != null)
-                rankText.text = cardData.rank.ToString();
-
-            if (suitText != null)
-                suitText.text = cardData.suit.ToString();
         }
     }
 }
