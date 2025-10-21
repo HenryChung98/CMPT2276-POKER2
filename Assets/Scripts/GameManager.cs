@@ -1,9 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
+using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
+    public enum GameState
+    {
+        PreFlop,
+        Flop,
+        Turn,
+        River,
+        Showdown
+    }
+
     [Header("Card Setup")]
     public GameObject cardPrefab;
     public Sprite[] cardSprites;
@@ -24,7 +33,6 @@ public class GameManager : MonoBehaviour
     private int dealerIndex = 0;
 
     // public cards
-    private readonly List<CardData> deck = new();
     private readonly List<CardData> communityCardList = new();
 
     // managers
@@ -32,6 +40,7 @@ public class GameManager : MonoBehaviour
     private DeckManager deckManager;
 
     public static GameManager Instance { get; private set; }
+    private GameState currentState = GameState.PreFlop;
 
     private void Awake()
     {
@@ -58,13 +67,17 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        StartNewRound();
+    }
+    private void StartNewRound()
+    {
         deckManager.Shuffle();
         DealHoleCards();
         PostBlind();
+        currentState = GameState.PreFlop;
         UpdateMoneyUI();
     }
 
-    // ============================= rendering UIs =============================
     private void UpdateMoneyUI()
     {
         uiManager.UpdateMoneyUI(bettingManager.Pot, player.Chips, opponent.Chips);
@@ -75,26 +88,21 @@ public class GameManager : MonoBehaviour
     public void ResetButton()
     {
         ClearAllCardHolders();
-        deckManager.Shuffle();
-        DealHoleCards();
-
-        player.ResetStatus();
-        opponent.ResetStatus();
-        bettingManager.ResetPot();
-
-        PostBlind();
         player.Chips = 1000;
         opponent.Chips = 1000;
-
-        UpdateMoneyUI();
-
+        bettingManager.ResetPot();
+        StartNewRound();
     }
 
-    public void TestDealCommunityCard() { DealCommunityCards(1); }
-    public void CheckHand()
+    public void CheckPlayerHand()
     {
         var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
         Debug.Log($"You currently have: {res.Description}");
+    }
+    public void CheckOpponentHand()
+    {
+        var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(opponent.HoleCards));
+        Debug.Log($"opponent currently have: {res.Description}");
     }
 
     public void PlayerCallButton()
@@ -125,6 +133,63 @@ public class GameManager : MonoBehaviour
 
     // ----------------------------------------------------------------------
 
+    // ============================= flow logics =============================
+
+    // move to next phase. currently hooked to a button and executed when clicked
+    public void NextPhase()
+    {
+        if (!AllPlayersActed())
+        {
+            Debug.Log("All players must act before move");
+            return;
+        }
+
+        switch (currentState)
+        {
+            case GameState.PreFlop:
+                DealCommunityCards(3);
+                currentState = GameState.Flop;
+                Debug.Log("flop phase");
+                break;
+            case GameState.Flop:
+                DealCommunityCards(1);
+                currentState = GameState.Turn;
+                Debug.Log("turn phase");
+                break;
+            case GameState.Turn:
+                DealCommunityCards(1);
+                currentState = GameState.River;
+                Debug.Log("river phase");
+                break;
+            case GameState.River:
+                Showdown();
+                currentState = GameState.Showdown;
+                Debug.Log("showdown phase");
+                return;
+        }
+        ResetRoundBetting();
+    }
+
+    private bool AllPlayersActed()
+    {
+        foreach (var p in players)
+        {
+            if (!p.HasActed)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    private void ResetRoundBetting()
+    {
+        foreach (var p in players)
+        {
+            p.ResetStatus();
+        }
+    }
+    // ============================= /flow logics =============================
+
     void ClearAllCardHolders()
     {
         // cards in holders go back to deck (copy the list elements from hole to deck)
@@ -150,8 +215,6 @@ public class GameManager : MonoBehaviour
         UpdateMoneyUI();
     }
 
-
-    // ============================= pre-flop =============================
     void DealHoleCards()
     {
         for (int i = 0; i < 2; i++)
@@ -172,11 +235,7 @@ public class GameManager : MonoBehaviour
         bettingManager.PostBlind(players, dealerIndex);
         dealerIndex = (dealerIndex + 1) % players.Count;
     }
-    // ============================= /pre-flop =============================
 
-
-
-    // ============================= flop =============================
     void DealCommunityCards(int num)
     {
         if (communityCardList.Count >= 5)
@@ -192,7 +251,6 @@ public class GameManager : MonoBehaviour
             uiManager.DisplayCard(card, communityCardsHolder);
         }
     }
-    // ============================= /flop =============================
 
 
     // ============================= showdown =============================
