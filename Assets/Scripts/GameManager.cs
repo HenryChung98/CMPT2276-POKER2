@@ -119,6 +119,7 @@ public class GameManager : MonoBehaviour
         {
             int amount = opponent.BetThisRound - player.BetThisRound > 0 ? opponent.BetThisRound - player.BetThisRound : 0;
             Call(player, amount);
+            UpdateStateMessage("Player called");
         }
         else
         {
@@ -132,6 +133,7 @@ public class GameManager : MonoBehaviour
         {
             int amount = player.BetThisRound - opponent.BetThisRound > 0 ? player.BetThisRound - opponent.BetThisRound : 0;
             Call(opponent, amount);
+            UpdateStateMessage("Opponent called");
         }
         else
         {
