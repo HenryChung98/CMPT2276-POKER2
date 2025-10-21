@@ -26,14 +26,25 @@ public static class PokerHandEvaluator
         var pair = rankGroups.FirstOrDefault(g => g.Count == 2);
         if (pair != null)
         {
+            // Two pairs
             var twoPair = rankGroups.FirstOrDefault(f => f.Count == 2 && f.Rank != pair.Rank);
             if (twoPair != null)
             {
-                var desC = $"Two Pairs ({pair.Rank}) with another pair ({twoPair.Rank})";
+                //Need this one for a very specific scenario. Will decide later to ignore the logic.
+                var kIckers = cards
+               .Where(c => c.rank != pair.Rank)
+               .Select(c => c.rank)
+               .Distinct()
+               .OrderByDescending(r => (int)r)
+               .Take(1)
+               .ToList();
+
+                var desC = $"Two Pairs ({pair.Rank}) with another pair ({twoPair.Rank}) and kickers {string.Join(", ", kIckers)}";
                 return new HandResult
                 {
                     Rank = HandRank.TwoPair,
-                    Tiebreakers = new List<Rank> { pair.Rank }.Concat(new List<Rank> { twoPair.Rank }).ToList(),
+                    Tiebreakers = new List<Rank> { pair.Rank }.Concat(new List<Rank> { twoPair.Rank }).Concat(kIckers).ToList(),
+                    //Tiebreakers = new List<Rank> { pair.Rank }.Concat(new List<Rank> { twoPair.Rank }).ToList(),
                     Description = desC
                 };
             }
@@ -116,7 +127,7 @@ public static class PokerHandEvaluator
         // making Linq table for organizing suit
         var suitGroups = cards
            .GroupBy(s => s.suit)
-           .Select(g => new { Suit = g.Key, Count = g.Count() })
+           .Select(g => new { Suit = g.Key, Count = g.Count()  })
            .OrderByDescending(g => g.Count)
            .ThenByDescending(g => (int)g.Suit)
            .ToList();
@@ -127,18 +138,79 @@ public static class PokerHandEvaluator
         {
             var flushCards = cards
                 .Where(c => c.suit == isFlush.Suit)
-                .OrderByDescending(c => (int)c.rank)
-                .Take(5)
-                .Select(c => c.rank)
+                .Select(c => (int)c.rank)
+                .Distinct()
+                .OrderBy(r => r)
                 .ToList();
 
-            var desc = $"Flush({isFlush.Suit}s)";
+            // Ace-low handling
+            if (flushCards.Contains(14))
+                flushCards.Insert(0, 1);
+
+            // Straight flush checking
+            for (int i = 0; i <= flushCards.Count - 5; i++)
+            {
+                bool consecutive = true;
+                for (int j = 0; j < 4; j++)
+                {
+                    if (flushCards[i + j + 1] - flushCards[i + j] != 1)
+                    {
+                        consecutive = false;
+                        break;
+                    }
+                }
+
+                if (consecutive)
+                {
+                    // Straight Flush found
+                    var highest = flushCards[i + 4];
+                    var lowest = flushCards[i];
+
+                    //Royal Flush
+                    if (highest == 14 && lowest == 10)
+                    {
+                        var deSC = $"Royal Flush ({isFlush.Suit}s)";
+                        return new HandResult
+                        {
+                            Rank = HandRank.RoyalFlush,
+                            Tiebreakers = flushCards
+                                .Skip(i)
+                                .Take(5)
+                                .OrderByDescending(r => r)
+                                .Select(r => (Rank)r)
+                                .ToList(),
+                            Description = deSC
+                        };
+                    }
+
+
+                    var desC = $"Straight Flush({isFlush.Suit}s) up to {highest}";
+                    return new HandResult
+                    {
+                        Rank = HandRank.StraightFlush,
+                        Tiebreakers = flushCards
+                            .Skip(i)
+                            .Take(5)
+                            .OrderByDescending(r => r)
+                            .Select(r => (Rank)r)
+                            .ToList(),
+                        Description = desC
+                    };
+                }
+            }
+
+            var desc = $"Flush ({isFlush.Suit}s)";
             return new HandResult
             {
-                Rank = HandRank.Flush, // represting what card rank
-                Tiebreakers = flushCards,
+                Rank = HandRank.Flush, // representing what card rank
+                Tiebreakers = flushCards
+                    .OrderByDescending(r => r)
+                    .Take(5)
+                    .Select(r => (Rank)r) 
+                    .ToList(),
                 Description = desc
             };
+
         }
 
 
