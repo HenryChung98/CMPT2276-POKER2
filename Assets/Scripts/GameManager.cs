@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using TMPro;
+using UnityEditor.Experimental.GraphView;
 
 public class GameManager : MonoBehaviour
 {
@@ -25,6 +27,7 @@ public class GameManager : MonoBehaviour
 
     [Header("UI")]
     public UIManager uiManager;
+    public TextMeshProUGUI stateText;
 
     // player objects
     private Player player;
@@ -82,6 +85,10 @@ public class GameManager : MonoBehaviour
     private void UpdateMoneyUI()
     {
         uiManager.UpdateMoneyUI(bettingManager.Pot, player.Chips, opponent.Chips);
+    }
+    private void UpdateStateMessage(string msg) // this is just displaying debugging message on the scene. we won't need in the future
+    {
+        stateText.text = msg;
     }
 
 
@@ -141,6 +148,7 @@ public class GameManager : MonoBehaviour
     {
         if (!AllPlayersActed())
         {
+            UpdateStateMessage("All players must act before move");
             Debug.Log("All players must act before move");
             return;
         }
@@ -150,16 +158,19 @@ public class GameManager : MonoBehaviour
             case GameState.PreFlop:
                 DealCommunityCards(3);
                 currentState = GameState.Flop;
+                UpdateStateMessage("flop phase");
                 Debug.Log("flop phase");
                 break;
             case GameState.Flop:
                 DealCommunityCards(1);
                 currentState = GameState.Turn;
+                UpdateStateMessage("turn phase");
                 Debug.Log("turn phase");
                 break;
             case GameState.Turn:
                 DealCommunityCards(1);
                 currentState = GameState.River;
+                UpdateStateMessage("river phase");
                 Debug.Log("river phase");
                 break;
             case GameState.River:
@@ -275,18 +286,21 @@ public class GameManager : MonoBehaviour
 
         if (cmp > 0)
         {
+            UpdateStateMessage("You win");
             Debug.Log($"You win! {playerResult.Description} beats {opponentResult.Description}. +{bettingManager.Pot} chips.");
             bettingManager.PayoutChips(player, bettingManager.Pot);
             bettingManager.ResetPot();
         }
         else if (cmp < 0)
         {
+            UpdateStateMessage("Opponent win");
             Debug.Log($"Opponent wins. {opponentResult.Description} beats {playerResult.Description}.");
             bettingManager.PayoutChips(opponent, bettingManager.Pot);
             bettingManager.ResetPot();
         }
         else
         {
+            UpdateStateMessage("Tie");
             Debug.Log($"Tie: {playerResult.Description} vs {opponentResult.Description}. Pot split.");
             int split = bettingManager.Pot / 2;
             bettingManager.PayoutChips(player, split);
