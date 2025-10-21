@@ -73,6 +73,7 @@ public class GameManager : MonoBehaviour
     {
         deckManager.Shuffle();
         DealHoleCards();
+        ResetAllPlayerStatus();
         PostBlind();
         currentState = GameState.PreFlop;
         UpdateMoneyUI();
@@ -167,7 +168,7 @@ public class GameManager : MonoBehaviour
                 Debug.Log("showdown phase");
                 return;
         }
-        ResetRoundBetting();
+        ResetAllPlayerStatus();
     }
 
     private bool AllPlayersActed()
@@ -181,7 +182,7 @@ public class GameManager : MonoBehaviour
         }
         return true;
     }
-    private void ResetRoundBetting()
+    private void ResetAllPlayerStatus()
     {
         foreach (var p in players)
         {
