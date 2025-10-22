@@ -55,6 +55,26 @@ public class BettingManager
         Debug.Log($"{player.Name} bet {playerBet}.");
     }
 
+    public void Raise(List<Player> players, Player player, int amount)
+    {
+        if (!player.CanBet(amount))
+        {
+            Debug.Log("Not enough chips.");
+            return;
+        }
+        foreach (var p in players)
+        {
+            if (p != player)
+            {
+                p.HasActed = false;
+                Debug.Log($"{p.Name} has acted become false.");
+            }
+        }
+        int playerBet = player.Bet(amount);
+        pot += playerBet;
+        player.HasActed = true;
+    }
+
     public void PayoutChips(Player player, int amount)
     {
         player.Chips += amount;
