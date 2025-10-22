@@ -96,8 +96,6 @@ public class GameManager : MonoBehaviour
     public void ResetButton()
     {
         ClearAllCardHolders();
-        player.Chips = 1000;
-        opponent.Chips = 1000;
         bettingManager.ResetPot();
         StartNewRound();
     }
