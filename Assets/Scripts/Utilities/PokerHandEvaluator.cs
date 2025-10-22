@@ -135,14 +135,15 @@ public static class PokerHandEvaluator
         {
             uniqueCards.Insert(0, 1);
         }
-        
+
         // Straight
-        for (int i = 0; i <= uniqueCards.Count; i++)
+        for (int i = 0; i <= uniqueCards.Count - 5; i++) // prevent out of range
         {
             bool isConsecutive = true;
+
             for (int j = 0; j < 4; j++)
             {
-                if (uniqueCards[i + j + 1] - uniqueCards[i + j] != 1)
+                if (uniqueCards[i + j + 1] - uniqueCards[i + j] != 1) // This i + j + 1 makes the out of bound error
                 {
                     isConsecutive = false;
                     break;
@@ -157,23 +158,22 @@ public static class PokerHandEvaluator
                 var highestCard = (Rank)highest;
                 var lowestCard = (Rank)lowest;
 
-                if (highest == 14 && lowest == 10)
-                {                 
-                    var desc = $"Straight ({lowestCard}s) up to {highestCard}";
-                    return new HandResult
-                    {
-                        Rank = HandRank.Straight,
-                        Tiebreakers = uniqueCards
-                            .Skip(i)
-                            .Take(5)
-                            .OrderByDescending(r => r)
-                            .Select(r => (Rank)r)
-                            .ToList(),
-                        Description = desc
-                    };
-                }
+                var desc = $"Straight ({lowestCard}s) up to {highestCard}";
+
+                return new HandResult
+                {
+                    Rank = HandRank.Straight,
+                    Tiebreakers = uniqueCards
+                        .Skip(i)
+                        .Take(5)
+                        .OrderByDescending(r => r)
+                        .Select(r => (Rank)r)
+                        .ToList(),
+                    Description = desc
+                };
             }
         }
+
 
         // making Linq table for organizing suit
         var suitGroups = cards
@@ -305,138 +305,3 @@ public static class PokerHandEvaluator
 }
 
 
-
-/*
-public static bool isFlush(List<CardData> holeCard, List<CardData> communityCard)
-{
-    List<CardData> allcardData = new List<CardData>();
-    allcardData.AddRange(holeCard);
-    allcardData.AddRange(communityCard);
-
-    var occurence = new Dictionary<Suit, int>();
-
-    foreach (var i in allcardData)
-    {
-        if (!occurence.ContainsKey(i.suit))
-        {
-            occurence[i.suit] = 0; // Set the value of the that key to 0.
-        }
-        occurence[i.suit]++;
-    }
-
-    foreach (var j in occurence) // check again.
-    {
-        if (occurence[j].value >= 5)
-            return true;
-    }
-    return false;
-}
-
-public static bool isFourofaKind(List<CardData> holeCard, List<CardData> communityCard)
-{
-    List<CardData> allcardData = new List<CardData>();
-    allcardData.AddRange(holeCard);
-    allcardData.AddRange(communityCard);
-
-    var occurence = new Dictionary<Rank, int>();
-
-    foreach (var i in allcardData)
-    {
-        if (!occurence.ContainsKey(i.rank))
-        {
-            occurence[i.rank] = 0;
-        }
-        occurence[i.rank]++;
-    }
-
-    foreach (var j in occurence.Values)
-    {
-        if (j >= 4)
-            return true;
-    }
-    return false;
-}
-
-public static bool isFullhouse(List<CardData> holeCard, List<CardData> communityCard)
-{
-    return isThreeofaKind(holeCard, communityCard) && isaPair(holeCard, communityCard);
-}
-public static bool isThreeofaKind(List<CardData> holeCard, List<CardData> communityCard)
-{
-    List<CardData> allcardData = new List<CardData>();
-    allcardData.AddRange(holeCard);
-    allcardData.AddRange(communityCard);
-
-    var occurence = new Dictionary<Rank, int>();
-
-    foreach (var i in allcardData)
-    {
-        if (!occurence.ContainsKey(i.rank))
-        {
-            occurence[i.rank] = 0;
-        }
-        occurence[i.rank]++;
-    }
-
-    foreach (var j in occurence.Values)
-    {
-        if (j == 3)
-            return true;
-    }
-    return false;
-}
-
-public static bool isTwoPair(List<CardData> holeCard, List<CardData> communityCard)
-{
-    List<CardData> allcardData = new List<CardData>();
-    allcardData.AddRange(holeCard);
-    allcardData.AddRange(communityCard);
-
-    var occurence = new Dictionary<Rank, int>();
-
-    foreach (var i in allcardData)
-    {
-        if (!occurence.ContainsKey(i.rank))
-        {
-            occurence[i.rank] = 0;
-        }
-        occurence[i.rank]++;
-    }
-
-    int pairCount = 0;
-    foreach (var j in occurence.Values)
-    {
-        if (j == 2)
-        {
-            pairCount++;
-        }
-    }
-    return pairCount >= 2;
-}
-
-public static bool isaPair(List<CardData> holeCard, List<CardData> communityCard)
-{
-    List<CardData> allcardData = new List<CardData>();
-    allcardData.AddRange(holeCard);
-    allcardData.AddRange(communityCard);
-
-    var occurence = new Dictionary<Rank, int>();
-
-    foreach (var i in allcardData)
-    {
-        if (!occurence.ContainsKey(i.rank))
-        {
-            occurence[i.rank] = 0;
-        }
-        occurence[i.rank]++;
-    }
-
-    foreach (var j in occurence.Values)
-    {
-        if (j == 2)
-            return true;
-    }
-    return false;
-}
-}
-*/
