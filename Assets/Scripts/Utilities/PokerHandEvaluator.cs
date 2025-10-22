@@ -8,7 +8,7 @@ public static class PokerHandEvaluator
     public sealed class HandResult
     {
         public HandRank Rank;
-        public List<Rank> Tiebreakers; // ordered high¡÷low for comparisons
+        public List<Rank> Tiebreakers; // ordered highï¿½ï¿½low for comparisons
         public string Description;
     }
 
@@ -123,6 +123,54 @@ public static class PokerHandEvaluator
                 Description = desc
             };
         }
+        
+        // making linq table for straight cards
+        var uniqueCards = cards
+            .Select(g =>(int)g.rank)
+            .Distinct()
+            .Orderby (r => r)
+            .ToList();
+
+        if (uniqueCards.Contains(14))
+        {
+            uniqueCards.Insert(0, 1);
+        }
+        
+        // Straight
+        for (int i = 0; i <= uniqueCards.Count; i++)
+        {
+            bool isConsecutive = true;
+            for (int j = 0; j < 4; j++)
+            {
+                if (uniqueCards[i + j + 1] - uniqueCards[i + j] != 1)
+                {
+                    isConsecutive = false;
+                    break;
+                }
+            }
+
+            if (isConsecutive)
+            {
+                var highest = uniqueCards[i + 4];
+                var lowest = uniqueCards[i];
+
+                if (highest == 14 && lowest == 10)
+                {
+                    var desc = $"Straight ({uniqueCards.Rank}s) up to {highest}";
+                    return new HandResult
+                    {
+                        Rank = HandRank.Straight,
+                        Tiebreakers = flushCards
+                            .Skip(i)
+                            .Take(5)
+                            .OrderByDescending(r => r)
+                            .Select(r => (Rank)r)
+                            .ToList(),
+                        Description = desc
+                    };
+                }
+            }
+        }
 
         // making Linq table for organizing suit
         var suitGroups = cards
@@ -212,16 +260,7 @@ public static class PokerHandEvaluator
             };
 
         }
-
-
-
-
-
-
-
-
-
-
+        
         // HIGH CARD: take top five ranks
         if (pair == null)
         {
@@ -249,7 +288,7 @@ public static class PokerHandEvaluator
     public static int Compare(HandResult a, HandResult b)
     {
         if (a.Rank != b.Rank) return a.Rank.CompareTo(b.Rank);
-        // same category ¡÷ compare tiebreakers
+        // same category ï¿½ï¿½ compare tiebreakers
         int n = System.Math.Min(a.Tiebreakers.Count, b.Tiebreakers.Count);
         for (int i = 0; i < n; i++)
         {

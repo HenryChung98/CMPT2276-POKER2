@@ -10,6 +10,7 @@ public class Player
     public List<CardData> HoleCards { get; set; }
     public int BetThisRound { get; set; }
     public bool HasActed { get; set; }
+    public bool HasFolded { get; set; }
 
     // initializing player object
     public Player(string name, int initialChips, Transform cardsHolder, bool isHuman)

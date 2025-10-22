@@ -132,6 +132,50 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void PlayerRaiseButton()
+    {
+        int amount = bettingManager / 30;
+        Call(playr, amount);
+        Debug.log($"Player has raised ({amount}).");
+    }
+
+    public void OpponentRaiseButton()
+    {
+        int amount = bettingManager / 30;
+        Call(opponent, amount);
+        Debug.log($"Opponent has raised ({amount}).";
+    }
+
+    public void PlayerFoldButton()
+    {
+        deckManager.ReturnCards(player.HoleCards);
+        uiManager.ClearCardHolder(playerCardsHolder);
+        player.HoleCards.Clear();
+
+        player.HasActed = true;
+        Debug.log("Player has folded.");
+
+        if (player.HasActed && opponentHasActed)
+        {
+            ResetAllPlayerStatus();
+        }
+    }
+
+    public void OpponentFoldButton()
+    {
+        deckManager.ReturnCards(opponent.HoleCards);
+        uiManager.ClearCardHolder(opponentCardsHolder);
+        opponent.HoleCards.Clear();
+
+        opponent.HasActed = true;
+        Debug.log("Opponent has folded.");
+        
+        if (opponent.HasActed && player.HasActed)
+        {
+            ResetAllPlayerStatus();
+        }
+    }
+    
     // ----------------------------------------------------------------------
 
     // ============================= flow logics =============================
