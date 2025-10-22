@@ -128,7 +128,7 @@ public static class PokerHandEvaluator
         var uniqueCards = cards
             .Select(g =>(int)g.rank)
             .Distinct()
-            .Orderby (r => r)
+            .OrderBy(r => r)
             .ToList();
 
         if (uniqueCards.Contains(14))
@@ -154,13 +154,16 @@ public static class PokerHandEvaluator
                 var highest = uniqueCards[i + 4];
                 var lowest = uniqueCards[i];
 
+                var highestCard = (Rank)highest;
+                var lowestCard = (Rank)lowest;
+
                 if (highest == 14 && lowest == 10)
-                {
-                    var desc = $"Straight ({uniqueCards.Rank}s) up to {highest}";
+                {                 
+                    var desc = $"Straight ({lowestCard}s) up to {highestCard}";
                     return new HandResult
                     {
                         Rank = HandRank.Straight,
-                        Tiebreakers = flushCards
+                        Tiebreakers = uniqueCards
                             .Skip(i)
                             .Take(5)
                             .OrderByDescending(r => r)
@@ -231,7 +234,7 @@ public static class PokerHandEvaluator
                         };
                     }
 
-
+                    // Straight Flush
                     var desC = $"Straight Flush({isFlush.Suit}s) up to {highest}";
                     return new HandResult
                     {
@@ -247,6 +250,7 @@ public static class PokerHandEvaluator
                 }
             }
 
+            // Flush
             var desc = $"Flush ({isFlush.Suit}s)";
             return new HandResult
             {
