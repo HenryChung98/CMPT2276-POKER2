@@ -6,28 +6,16 @@ using UnityEditor.Experimental.GraphView;
 
 public class GameManager : MonoBehaviour
 {
-    public enum GameState
-    {
-        PreFlop,
-        Flop,
-        Turn,
-        River,
-        Showdown
-    }
-
-    [Header("Card Setup")]
-    public GameObject cardPrefab;
-    public Sprite[] cardSprites;
-    public Sprite cardBackSprite;
-
     [Header("Card Holders")]
     public Transform playerCardsHolder;
     public Transform opponentCardsHolder;
     public Transform communityCardsHolder;
 
     [Header("UI")]
+    public Sprite[] cardSprites;
     public UIManager uiManager;
     public TextMeshProUGUI stateText;
+
 
     // player objects
     private Player player;
