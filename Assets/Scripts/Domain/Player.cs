@@ -42,5 +42,6 @@ public class Player
     {
         BetThisRound = 0;
         HasActed = false;
+        HasFolded = false;
     }
 }

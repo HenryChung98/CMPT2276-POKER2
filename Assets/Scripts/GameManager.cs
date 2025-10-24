@@ -27,6 +27,7 @@ public class GameManager : MonoBehaviour
 
     // public cards
     private readonly List<CardData> communityCardList = new();
+    private readonly List<CardData> foldedCards = new();
 
     // managers
     private BettingManager bettingManager;
@@ -74,35 +75,8 @@ public class GameManager : MonoBehaviour
         UpdateButtonStates();
     }
 
-    private void UpdateMoneyUI()
-    {
-        uiManager.UpdateMoneyUI(bettingManager.Pot, player.Chips, opponent.Chips);
-    }
 
-    // this is just displaying debugging message on the scene. we won't need in the future
-    private void UpdateStateMessage(string msg) 
-    {
-        stateText.text = msg;
-    }
-
-    // need to modify in future when we add more than 2 ai
-    private void UpdateButtonStates()
-    {
-        bool isPlayerTurn = IsPlayerTurn(player);
-        bool isOpponentTurn = IsPlayerTurn(opponent);
-        uiManager.UpdateButtonStates(isPlayerTurn, isOpponentTurn);
-    }
-
-
-    // ---------------- Buttons you can hook in the Inspector ----------------
-    public void ResetButton()
-    {
-        dealerIndex = (dealerIndex + 1) % players.Count;
-        ClearAllCardHolders();
-        bettingManager.ResetPot();
-        StartNewRound();
-    }
-
+    // ============================ These are fur debugging. we won't need these in future ============================
     public void CheckPlayerHand()
     {
         var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
@@ -113,122 +87,98 @@ public class GameManager : MonoBehaviour
         var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(opponent.HoleCards));
         Debug.Log($"opponent currently have: {res.Description}");
     }
-
-    public void PlayerCallButton()
+    private void UpdateStateMessage(string msg)
     {
-        if (!IsPlayerTurn(player))
+        stateText.text = msg;
+    }
+    // ================================================================================================================
+
+    // ============================= Update UIs =============================
+    private void UpdateMoneyUI()
+    {
+        uiManager.UpdateMoneyUI(bettingManager.Pot, player.Chips, opponent.Chips);
+    }
+
+
+    // need to modify in future when we add more than 2 ai
+    private void UpdateButtonStates()
+    {
+        bool isPlayerTurn = IsPlayerTurn(player);
+        bool isOpponentTurn = IsPlayerTurn(opponent);
+        uiManager.UpdateButtonStates(isPlayerTurn, isOpponentTurn);
+    }
+    // ============================= /Update UIs =============================
+
+
+    // ============================= Buttons you can hook in the Inspector =============================
+    public void ResetButton()
+    {
+        dealerIndex = (dealerIndex + 1) % players.Count;
+        ClearAllCardHolders();
+        bettingManager.ResetPot();
+        StartNewRound();
+    }
+
+    public void PlayerCallButton() => HandleCall(player, opponent);
+    public void OpponentCallButton() => HandleCall(opponent, player);
+    public void PlayerRaiseButton() => HandleRaise(player, opponent);
+    public void OpponentRaiseButton() => HandleRaise(opponent, player);
+    public void PlayerFoldButton() => HandleFold(player, playerCardsHolder);
+    public void OpponentFoldButton() => HandleFold(opponent, playerCardsHolder);
+
+    // ============================= /buttons =============================
+
+
+    // ============================= button functions =============================
+    private void HandleCall(Player caller, Player other)
+    {
+        if (!IsPlayerTurn(caller))
         {
-            Debug.Log("not player's turn.");
+            Debug.Log($"not {caller.Name}'s turn.");
             return;
         }
-        if (!player.HasActed || !player.HasFolded)
+        if (!caller.HasActed || !caller.HasFolded)
         {
-            int amount = opponent.BetThisRound - player.BetThisRound > 0 ? opponent.BetThisRound - player.BetThisRound : 0;
-            bettingManager.Call(player, amount);
-            UpdateMoneyUI();
-            UpdateStateMessage("Player called");
+            int amount = Mathf.Max(0, other.BetThisRound - caller.BetThisRound);
+            bettingManager.Call(caller, amount);
+            UpdateStateMessage($"{caller.Name} called");
             NextPhase();
-            NextBettor();
-            UpdateButtonStates();
+            AdvanceTurn();
         }
         else
         {
-            Debug.Log("player has acted.");
+            Debug.Log($"{caller.Name} has acted.");
         }
     }
 
-    public void OpponentCallButton()
+    private void HandleRaise(Player raiser, Player other)
     {
-        if (!IsPlayerTurn(opponent))
+        if (!raiser.HasActed || !player.HasFolded)
         {
-            Debug.Log("not opponent's turn.");
-            return;
-        }
-        if (!opponent.HasActed || !opponent.HasFolded)
-        {
-            int amount = player.BetThisRound - opponent.BetThisRound > 0 ? player.BetThisRound - opponent.BetThisRound : 0;
-            bettingManager.Call(opponent, amount);
-            UpdateMoneyUI();
-            UpdateStateMessage("Opponent called");
-            NextPhase();
-            NextBettor();
-            UpdateButtonStates();
+            int amount = other.BetThisRound * 2 > 0 ? other.BetThisRound * 2 : 5;
+            bettingManager.Raise(players, raiser, amount);
+            UpdateStateMessage($"{raiser.Name} raised {amount}");
+            AdvanceTurn();
         }
         else
         {
-            Debug.Log("opponent has acted.");
+            Debug.Log($"{raiser.Name} has acted.");
         }
     }
 
-    public void PlayerRaiseButton()
+    private void HandleFold(Player folder, Transform cardsHolder)
     {
-        if (!player.HasActed || !player.HasFolded)
-        {
-            int amount = opponent.BetThisRound * 2 > 0 ? opponent.BetThisRound * 2 : 5;
-            bettingManager.Raise(players, player, amount);
-            UpdateStateMessage($"Player raised {amount}");
-            UpdateMoneyUI();
-            NextBettor();
-            UpdateButtonStates();
-        }
-        else
-        {
-            Debug.Log("player has acted.");
-        }
+        foldedCards.AddRange(folder.HoleCards);
+        uiManager.ClearCardHolder(cardsHolder);
+        folder.HoleCards.Clear();
+        folder.HasFolded = true;
+        Debug.Log($"{folder.Name} has folded.");
     }
 
-    public void OpponentRaiseButton()
-    {
-        if (!opponent.HasActed || !opponent.HasFolded)
-        {
-            int amount = player.BetThisRound * 2 > 0 ? player.BetThisRound * 2 : 5;
-            bettingManager.Raise(players, opponent, amount);
-            UpdateStateMessage($"opponent raised {amount}");
-            UpdateMoneyUI();
-            NextBettor();
-            UpdateButtonStates();
-        }
-        else
-        {
-            Debug.Log("opponent has acted.");
-        }
-    }
-
-    public void PlayerFoldButton()
-    {
-        deckManager.ReturnCards(player.HoleCards); // this will be modified later
-        uiManager.ClearCardHolder(playerCardsHolder);
-        player.HoleCards.Clear();
-
-        player.HasFolded = true;
-        Debug.Log("Player has folded.");
-
-        if (player.HasFolded && opponent.HasFolded)
-        {
-            ResetAllPlayerStatus();
-        }
-    }
-
-    public void OpponentFoldButton()
-    {
-        deckManager.ReturnCards(opponent.HoleCards); // this will be modified later
-        uiManager.ClearCardHolder(opponentCardsHolder);
-        opponent.HoleCards.Clear();
-
-        opponent.HasFolded = true;
-        Debug.Log("Opponent has folded.");
-        
-        if (opponent.HasFolded && player.HasFolded)
-        {
-            ResetAllPlayerStatus();
-        }
-    }
-    
-    // ----------------------------------------------------------------------
+    // ============================= /button functions =============================
 
     // ============================= flow logics =============================
 
-    // move to next phase. currently hooked to a button and executed when clicked
     public void NextPhase()
     {
         if (!AllPlayersActed())
@@ -263,6 +213,7 @@ public class GameManager : MonoBehaviour
         ResetAllPlayerStatus();
     }
 
+    // change bettor to the next player
     private void NextBettor()
     {
         do
@@ -270,11 +221,14 @@ public class GameManager : MonoBehaviour
             bettorIndex = (bettorIndex + 1) % players.Count;
         } while (players[bettorIndex].HasFolded);
     }
+    
+    // check whether it is player's turn
     private bool IsPlayerTurn(Player player)
     {
-        return players[bettorIndex] == player;
+        return players[bettorIndex] == player && !player.HasFolded;
     }
 
+    // check all player.HasActed is true
     private bool AllPlayersActed()
     {
         foreach (var p in players)
@@ -289,12 +243,21 @@ public class GameManager : MonoBehaviour
         }
         return true;
     }
+
+    // set all player.HasActed = false / player.BetThisRound = 0
     private void ResetAllPlayerStatus()
     {
         foreach (var p in players)
         {
             p.ResetStatus();
         }
+    }
+
+    private void AdvanceTurn()
+    {
+        NextBettor();
+        UpdateMoneyUI();
+        UpdateButtonStates();
     }
     // ============================= /flow logics =============================
 
@@ -304,6 +267,7 @@ public class GameManager : MonoBehaviour
         deckManager.ReturnCards(player.HoleCards);
         deckManager.ReturnCards(opponent.HoleCards);
         deckManager.ReturnCards(communityCardList);
+        deckManager.ReturnCards(foldedCards);
 
         // destroying game objects (UI)
         uiManager.ClearCardHolder(playerCardsHolder);
