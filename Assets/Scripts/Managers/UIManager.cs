@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
@@ -11,6 +12,14 @@ public class UIManager : MonoBehaviour
     [Header("Card Prefab")]
     public GameObject cardPrefab;
     public Sprite cardBackSprite;
+
+    [Header("Buttons")]
+    public Button playerCallButton;
+    public Button playerRaiseButton;
+    public Button playerFoldButton;
+    public Button opponentCallButton;
+    public Button opponentRaiseButton;
+    public Button opponentFoldButton;
 
     public void UpdateMoneyUI(int pot, int playerChips, int opponentChips)
     {
@@ -43,4 +52,16 @@ public class UIManager : MonoBehaviour
             ui.SetFaceDown(false);
         }
     }
+
+    public void UpdateButtonStates(bool isPlayerTurn, bool isOpponentTurn)
+    {
+        playerCallButton.interactable = isPlayerTurn;
+        playerRaiseButton.interactable = isPlayerTurn;
+        playerFoldButton.interactable = isPlayerTurn;
+        opponentCallButton.interactable = isOpponentTurn;
+        opponentRaiseButton.interactable = isOpponentTurn;
+        opponentFoldButton.interactable = isOpponentTurn;
+    }
+
+
 }
