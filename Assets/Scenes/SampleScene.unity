@@ -2333,7 +2333,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0096b27dcf9bc4c4eab6607debf5960d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  cardPrefab: {fileID: 6170852132776693378, guid: b82f694a8c1dd9f499b7254e8905bc6c, type: 3}
+  playerCardsHolder: {fileID: 1694431499}
+  opponentCardsHolder: {fileID: 453593867}
+  communityCardsHolder: {fileID: 1779912306}
   cardSprites:
   - {fileID: 7024648501981196136, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
   - {fileID: -1145144668836272637, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
@@ -2387,10 +2389,6 @@ MonoBehaviour:
   - {fileID: 5125170831202582444, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
   - {fileID: 7632975744399105376, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
   - {fileID: -1304566618446825538, guid: 617780277f7a0ec40910a819f6b5d2ac, type: 3}
-  cardBackSprite: {fileID: 0}
-  playerCardsHolder: {fileID: 1694431499}
-  opponentCardsHolder: {fileID: 453593867}
-  communityCardsHolder: {fileID: 1779912306}
   uiManager: {fileID: 1943318075}
   stateText: {fileID: 2075799736}
 --- !u!4 &1085654759
