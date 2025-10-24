@@ -71,15 +71,26 @@ public class GameManager : MonoBehaviour
         bettorIndex = (dealerIndex + 2) % players.Count;
         currentState = GameState.PreFlop;
         UpdateMoneyUI();
+        UpdateButtonStates();
     }
 
     private void UpdateMoneyUI()
     {
         uiManager.UpdateMoneyUI(bettingManager.Pot, player.Chips, opponent.Chips);
     }
-    private void UpdateStateMessage(string msg) // this is just displaying debugging message on the scene. we won't need in the future
+
+    // this is just displaying debugging message on the scene. we won't need in the future
+    private void UpdateStateMessage(string msg) 
     {
         stateText.text = msg;
+    }
+
+    // need to modify in future when we add more than 2 ai
+    private void UpdateButtonStates()
+    {
+        bool isPlayerTurn = IsPlayerTurn(player);
+        bool isOpponentTurn = IsPlayerTurn(opponent);
+        uiManager.UpdateButtonStates(isPlayerTurn, isOpponentTurn);
     }
 
 
@@ -118,6 +129,7 @@ public class GameManager : MonoBehaviour
             UpdateStateMessage("Player called");
             NextPhase();
             NextBettor();
+            UpdateButtonStates();
         }
         else
         {
@@ -140,6 +152,7 @@ public class GameManager : MonoBehaviour
             UpdateStateMessage("Opponent called");
             NextPhase();
             NextBettor();
+            UpdateButtonStates();
         }
         else
         {
@@ -155,6 +168,8 @@ public class GameManager : MonoBehaviour
             bettingManager.Raise(players, player, amount);
             UpdateStateMessage($"Player raised {amount}");
             UpdateMoneyUI();
+            NextBettor();
+            UpdateButtonStates();
         }
         else
         {
@@ -170,6 +185,8 @@ public class GameManager : MonoBehaviour
             bettingManager.Raise(players, opponent, amount);
             UpdateStateMessage($"opponent raised {amount}");
             UpdateMoneyUI();
+            NextBettor();
+            UpdateButtonStates();
         }
         else
         {
