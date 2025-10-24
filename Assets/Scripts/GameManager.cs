@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Linq;
 using TMPro;
 using UnityEditor.Experimental.GraphView;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -22,6 +23,7 @@ public class GameManager : MonoBehaviour
     private Player opponent;
     private List<Player> players;
     private int dealerIndex = 0;
+    private int bettorIndex = 0;
 
     // public cards
     private readonly List<CardData> communityCardList = new();
@@ -53,7 +55,7 @@ public class GameManager : MonoBehaviour
         player = new Player("player", 1000, playerCardsHolder, true);
         opponent = new Player("opponent", 1000, opponentCardsHolder, false);
         
-        players = new List<Player> { player, opponent }; // to define a dealer
+        players = new List<Player> { player, opponent }; // to define a dealer, bettor
     }
 
     void Start()
@@ -65,7 +67,8 @@ public class GameManager : MonoBehaviour
         deckManager.Shuffle();
         DealHoleCards();
         ResetAllPlayerStatus();
-        PostBlind();
+        bettingManager.PostBlind(players, dealerIndex);
+        bettorIndex = (dealerIndex + 2) % players.Count;
         currentState = GameState.PreFlop;
         UpdateMoneyUI();
     }
@@ -83,6 +86,7 @@ public class GameManager : MonoBehaviour
     // ---------------- Buttons you can hook in the Inspector ----------------
     public void ResetButton()
     {
+        dealerIndex = (dealerIndex + 1) % players.Count;
         ClearAllCardHolders();
         bettingManager.ResetPot();
         StartNewRound();
@@ -101,12 +105,19 @@ public class GameManager : MonoBehaviour
 
     public void PlayerCallButton()
     {
-        if (player.HasActed != true)
+        if (!IsPlayerTurn(player))
+        {
+            Debug.Log("not player's turn.");
+            return;
+        }
+        if (!player.HasActed || !player.HasFolded)
         {
             int amount = opponent.BetThisRound - player.BetThisRound > 0 ? opponent.BetThisRound - player.BetThisRound : 0;
             bettingManager.Call(player, amount);
             UpdateMoneyUI();
             UpdateStateMessage("Player called");
+            NextPhase();
+            NextBettor();
         }
         else
         {
@@ -116,12 +127,19 @@ public class GameManager : MonoBehaviour
 
     public void OpponentCallButton()
     {
-        if (opponent.HasActed != true)
+        if (!IsPlayerTurn(opponent))
+        {
+            Debug.Log("not opponent's turn.");
+            return;
+        }
+        if (!opponent.HasActed || !opponent.HasFolded)
         {
             int amount = player.BetThisRound - opponent.BetThisRound > 0 ? player.BetThisRound - opponent.BetThisRound : 0;
             bettingManager.Call(opponent, amount);
             UpdateMoneyUI();
             UpdateStateMessage("Opponent called");
+            NextPhase();
+            NextBettor();
         }
         else
         {
@@ -131,7 +149,7 @@ public class GameManager : MonoBehaviour
 
     public void PlayerRaiseButton()
     {
-        if (player.HasActed != true)
+        if (!player.HasActed || !player.HasFolded)
         {
             int amount = opponent.BetThisRound * 2 > 0 ? opponent.BetThisRound * 2 : 5;
             bettingManager.Raise(players, player, amount);
@@ -146,7 +164,7 @@ public class GameManager : MonoBehaviour
 
     public void OpponentRaiseButton()
     {
-        if (opponent.HasActed != true)
+        if (!opponent.HasActed || !opponent.HasFolded)
         {
             int amount = player.BetThisRound * 2 > 0 ? player.BetThisRound * 2 : 5;
             bettingManager.Raise(players, opponent, amount);
@@ -165,10 +183,10 @@ public class GameManager : MonoBehaviour
         uiManager.ClearCardHolder(playerCardsHolder);
         player.HoleCards.Clear();
 
-        player.HasActed = true;
+        player.HasFolded = true;
         Debug.Log("Player has folded.");
 
-        if (player.HasActed && opponent.HasActed)
+        if (player.HasFolded && opponent.HasFolded)
         {
             ResetAllPlayerStatus();
         }
@@ -180,10 +198,10 @@ public class GameManager : MonoBehaviour
         uiManager.ClearCardHolder(opponentCardsHolder);
         opponent.HoleCards.Clear();
 
-        opponent.HasActed = true;
+        opponent.HasFolded = true;
         Debug.Log("Opponent has folded.");
         
-        if (opponent.HasActed && player.HasActed)
+        if (opponent.HasFolded && player.HasFolded)
         {
             ResetAllPlayerStatus();
         }
@@ -198,7 +216,6 @@ public class GameManager : MonoBehaviour
     {
         if (!AllPlayersActed())
         {
-            UpdateStateMessage("All players must act before move");
             Debug.Log("All players must act before move");
             return;
         }
@@ -208,19 +225,16 @@ public class GameManager : MonoBehaviour
             case GameState.PreFlop:
                 DealCommunityCards(3);
                 currentState = GameState.Flop;
-                UpdateStateMessage("flop phase");
                 Debug.Log("flop phase");
                 break;
             case GameState.Flop:
                 DealCommunityCards(1);
                 currentState = GameState.Turn;
-                UpdateStateMessage("turn phase");
                 Debug.Log("turn phase");
                 break;
             case GameState.Turn:
                 DealCommunityCards(1);
                 currentState = GameState.River;
-                UpdateStateMessage("river phase");
                 Debug.Log("river phase");
                 break;
             case GameState.River:
@@ -232,13 +246,28 @@ public class GameManager : MonoBehaviour
         ResetAllPlayerStatus();
     }
 
+    private void NextBettor()
+    {
+        do
+        {
+            bettorIndex = (bettorIndex + 1) % players.Count;
+        } while (players[bettorIndex].HasFolded);
+    }
+    private bool IsPlayerTurn(Player player)
+    {
+        return players[bettorIndex] == player;
+    }
+
     private bool AllPlayersActed()
     {
         foreach (var p in players)
         {
             if (!p.HasActed)
             {
-                return false;
+                if (!p.HasFolded)
+                {
+                    return false;
+                }
             }
         }
         return true;
@@ -284,11 +313,6 @@ public class GameManager : MonoBehaviour
             opponent.HoleCards.Add(opponentCard);
             uiManager.DisplayCard(opponentCard, opponentCardsHolder);
         }
-    }
-    private void PostBlind()
-    {
-        bettingManager.PostBlind(players, dealerIndex);
-        dealerIndex = (dealerIndex + 1) % players.Count;
     }
 
     void DealCommunityCards(int num)
