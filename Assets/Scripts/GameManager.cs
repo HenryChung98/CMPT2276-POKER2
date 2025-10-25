@@ -123,7 +123,7 @@ public class GameManager : MonoBehaviour
     public void PlayerRaiseButton() => HandleRaise(player, opponent);
     public void OpponentRaiseButton() => HandleRaise(opponent, player);
     public void PlayerFoldButton() => HandleFold(player, playerCardsHolder);
-    public void OpponentFoldButton() => HandleFold(opponent, playerCardsHolder);
+    public void OpponentFoldButton() => HandleFold(opponent, opponentCardsHolder);
 
     // ============================= /buttons =============================
 
@@ -131,26 +131,30 @@ public class GameManager : MonoBehaviour
     // ============================= button functions =============================
     private void HandleCall(Player caller, Player other)
     {
-        if (!IsPlayerTurn(caller))
-        {
-            return;
-        }
-        if (!caller.HasActed || !caller.HasFolded)
+        if (IsPlayerTurn(caller) && !caller.HasFolded)
         {
             int amount = Mathf.Max(0, other.BetThisRound - caller.BetThisRound);
             bettingManager.Call(caller, amount);
             AdvanceTurn();
             NextPhase();
         }
+        else
+        {
+            Debug.Log("ERROR");
+        }
     }
 
     private void HandleRaise(Player raiser, Player other)
     {
-        if (!raiser.HasActed || !player.HasFolded)
+        if (IsPlayerTurn(raiser) && !raiser.HasFolded)
         {
             int amount = other.BetThisRound + Mathf.Max(bettingManager.bigBlind, other.BetThisRound);
             bettingManager.Raise(players, raiser, amount);
             AdvanceTurn();
+        }
+        else
+        {
+            Debug.Log("ERROR");
         }
     }
 
@@ -161,6 +165,20 @@ public class GameManager : MonoBehaviour
         folder.HoleCards.Clear();
         folder.HasFolded = true;
         Debug.Log($"{folder.Name} has folded.");
+
+        // check only one player remains / need to be optimized
+        Player winner = GetSoleRemainingPlayer();
+        if (winner != null)
+        {
+            uiManager.UpdateButtonStates(false, false);
+            bettingManager.PayoutChips(winner, bettingManager.Pot);
+            bettingManager.ResetPot();
+            UpdateMoneyUI();
+            uiManager.restartButton.interactable = true;
+            currentState = GameState.Showdown;
+            Debug.Log("game ended by fold");
+            return;
+        }
     }
 
     // ============================= /button functions =============================
@@ -192,7 +210,6 @@ public class GameManager : MonoBehaviour
                 Debug.Log("river phase");
                 break;
             case GameState.River:
-                uiManager.UpdateButtonStates(false, false);
                 Showdown();
                 currentState = GameState.Showdown;
                 Debug.Log("showdown phase");
@@ -230,6 +247,13 @@ public class GameManager : MonoBehaviour
             }
         }
         return true;
+    }
+
+    private Player GetSoleRemainingPlayer()
+    {
+        // when only one player.HasFolded is false, return the player. else, return null
+        var activePlayers = players.Where(p => !p.HasFolded).ToList();
+        return activePlayers.Count == 1 ? activePlayers[0] : null;
     }
 
     // set all player.HasActed = false / player.BetThisRound = 0
@@ -312,6 +336,7 @@ public class GameManager : MonoBehaviour
 
     public void Showdown()
     {
+        uiManager.UpdateButtonStates(false, false);
         uiManager.RevealCards(opponentCardsHolder);
 
         var playerResult = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
