@@ -20,6 +20,7 @@ public class UIManager : MonoBehaviour
     public Button opponentCallButton;
     public Button opponentRaiseButton;
     public Button opponentFoldButton;
+    public Button restartButton;
 
     public void UpdateMoneyUI(int pot, int playerChips, int opponentChips)
     {
@@ -46,11 +47,13 @@ public class UIManager : MonoBehaviour
 
     public void RevealCards(Transform holder)
     {
+        restartButton.interactable = true;
         for (int i = 0; i < holder.childCount; i++)
         {
             var ui = holder.GetChild(i).GetComponent<CardUI>();
             ui.SetFaceDown(false);
         }
+        Debug.Log(restartButton.interactable);
     }
 
     public void UpdateButtonStates(bool isPlayerTurn, bool isOpponentTurn)
@@ -61,6 +64,8 @@ public class UIManager : MonoBehaviour
         opponentCallButton.interactable = isOpponentTurn;
         opponentRaiseButton.interactable = isOpponentTurn;
         opponentFoldButton.interactable = isOpponentTurn;
+
+        restartButton.interactable = false;
     }
 
 

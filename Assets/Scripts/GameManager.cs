@@ -139,8 +139,8 @@ public class GameManager : MonoBehaviour
         {
             int amount = Mathf.Max(0, other.BetThisRound - caller.BetThisRound);
             bettingManager.Call(caller, amount);
-            NextPhase();
             AdvanceTurn();
+            NextPhase();
         }
     }
 
@@ -192,6 +192,7 @@ public class GameManager : MonoBehaviour
                 Debug.Log("river phase");
                 break;
             case GameState.River:
+                uiManager.UpdateButtonStates(false, false);
                 Showdown();
                 currentState = GameState.Showdown;
                 Debug.Log("showdown phase");
@@ -311,7 +312,7 @@ public class GameManager : MonoBehaviour
 
     public void Showdown()
     {
-        //uiManager.RevealCards(opponentCardsHolder);
+        uiManager.RevealCards(opponentCardsHolder);
 
         var playerResult = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
         var opponentResult = PokerHandEvaluator.EvaluateBestHand(GetAllCards(opponent.HoleCards));

@@ -151,11 +151,11 @@ RectTransform:
   - {fileID: 1249470170}
   - {fileID: 750193780}
   - {fileID: 1101671050}
+  - {fileID: 716874572}
   - {fileID: 986980034}
   - {fileID: 206030618}
   - {fileID: 1446991808}
   - {fileID: 1872370050}
-  - {fileID: 716874572}
   m_Father: {fileID: 541602122}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -3512,6 +3512,7 @@ MonoBehaviour:
   opponentCallButton: {fileID: 986980035}
   opponentRaiseButton: {fileID: 206030619}
   opponentFoldButton: {fileID: 1446991809}
+  restartButton: {fileID: 136041037}
 --- !u!4 &1943318076
 Transform:
   m_ObjectHideFlags: 0
