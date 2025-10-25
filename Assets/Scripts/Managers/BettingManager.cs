@@ -4,8 +4,8 @@ using UnityEngine;
 public class BettingManager
 {
     private int pot = 0;
-    private readonly int smallBlind = 5;
-    private readonly int bigBlind = 10;
+    public readonly int smallBlind = 5;
+    public readonly int bigBlind = 10;
 
     public int Pot => pot; // encapsulation (to make readonly)
 
@@ -51,8 +51,6 @@ public class BettingManager
         int playerBet = player.Bet(amount);
         pot += playerBet;
         player.HasActed = true;
-
-        Debug.Log($"{player.Name} bet {playerBet}.");
     }
 
     public void Raise(List<Player> players, Player player, int amount)
@@ -67,7 +65,6 @@ public class BettingManager
             if (p != player)
             {
                 p.HasActed = false;
-                Debug.Log($"{p.Name} has acted become false.");
             }
         }
         int playerBet = player.Bet(amount);

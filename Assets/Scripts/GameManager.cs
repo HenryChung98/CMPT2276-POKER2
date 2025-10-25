@@ -3,7 +3,6 @@ using UnityEngine;
 using System.Linq;
 using TMPro;
 using UnityEditor.Experimental.GraphView;
-using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -111,7 +110,7 @@ public class GameManager : MonoBehaviour
 
 
     // ============================= Buttons you can hook in the Inspector =============================
-    public void ResetButton()
+    public void RestartButton()
     {
         dealerIndex = (dealerIndex + 1) % players.Count;
         ClearAllCardHolders();
@@ -134,20 +133,14 @@ public class GameManager : MonoBehaviour
     {
         if (!IsPlayerTurn(caller))
         {
-            Debug.Log($"not {caller.Name}'s turn.");
             return;
         }
         if (!caller.HasActed || !caller.HasFolded)
         {
             int amount = Mathf.Max(0, other.BetThisRound - caller.BetThisRound);
             bettingManager.Call(caller, amount);
-            UpdateStateMessage($"{caller.Name} called");
             NextPhase();
             AdvanceTurn();
-        }
-        else
-        {
-            Debug.Log($"{caller.Name} has acted.");
         }
     }
 
@@ -155,14 +148,9 @@ public class GameManager : MonoBehaviour
     {
         if (!raiser.HasActed || !player.HasFolded)
         {
-            int amount = other.BetThisRound * 2 > 0 ? other.BetThisRound * 2 : 5;
+            int amount = other.BetThisRound + Mathf.Max(bettingManager.bigBlind, other.BetThisRound);
             bettingManager.Raise(players, raiser, amount);
-            UpdateStateMessage($"{raiser.Name} raised {amount}");
             AdvanceTurn();
-        }
-        else
-        {
-            Debug.Log($"{raiser.Name} has acted.");
         }
     }
 
@@ -183,7 +171,6 @@ public class GameManager : MonoBehaviour
     {
         if (!AllPlayersActed())
         {
-            Debug.Log("All players must act before move");
             return;
         }
 
@@ -300,7 +287,6 @@ public class GameManager : MonoBehaviour
     {
         if (communityCardList.Count >= 5)
         {
-            Debug.Log("Community card can have max 5 cards");
             return;
         }
 

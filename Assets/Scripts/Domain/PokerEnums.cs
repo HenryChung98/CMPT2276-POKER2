@@ -17,6 +17,7 @@ public enum HandRank
 
 public enum GameState
 {
+    Idle,
     PreFlop,
     Flop,
     Turn,
