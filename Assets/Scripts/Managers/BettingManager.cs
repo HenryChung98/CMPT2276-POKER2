@@ -43,11 +43,6 @@ public class BettingManager
     //}
     public void Call(Player player, int amount = 0) 
     {
-        if (!player.CanBet(amount))
-        {
-            Debug.Log("Not enough chips.");
-            return;
-        }
         int playerBet = player.Bet(amount);
         pot += playerBet;
         player.HasActed = true;
@@ -57,7 +52,8 @@ public class BettingManager
     {
         if (!player.CanBet(amount))
         {
-            Debug.Log("Not enough chips.");
+            Call(player, amount);
+            Debug.Log("Not enough chips. Call is called instead");
             return;
         }
         foreach (var p in players)

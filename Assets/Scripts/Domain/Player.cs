@@ -11,6 +11,7 @@ public class Player
     public int BetThisRound { get; set; }
     public bool HasActed { get; set; }
     public bool HasFolded { get; set; }
+    public bool HasAllIn { get; set; }
 
     // initializing player object
     public Player(string name, int initialChips, Transform cardsHolder, bool isHuman)
@@ -30,18 +31,25 @@ public class Player
 
     public int Bet(int amount)
     {
-        // reason why using mathf.Min is to prevent the chips become negative value (like when all-in is happened)
         int actualBet = Mathf.Min(amount, Chips); 
         Chips -= actualBet;
         BetThisRound += actualBet;
         Debug.Log($"{this.Name} bet {BetThisRound} this round");
+        if (this.Chips <= 0)
+        {
+            this.HasAllIn = true;
+            Debug.Log($"{this.Name} all-in");
+        }
         return actualBet;
     }
 
-    public void ResetStatus()
+    public void ResetStatus(bool resetGame = false)
     {
         BetThisRound = 0;
         HasActed = false;
         HasFolded = false;
+        if (resetGame) { 
+            HasAllIn = false;
+        }
     }
 }

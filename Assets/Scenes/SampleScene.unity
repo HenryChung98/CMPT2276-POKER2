@@ -3506,12 +3506,15 @@ MonoBehaviour:
   oppBankText: {fileID: 722121662}
   cardPrefab: {fileID: 6170852132776693378, guid: b82f694a8c1dd9f499b7254e8905bc6c, type: 3}
   cardBackSprite: {fileID: 0}
-  playerCallButton: {fileID: 1249470171}
-  playerRaiseButton: {fileID: 750193781}
-  playerFoldButton: {fileID: 1101671051}
-  opponentCallButton: {fileID: 986980035}
-  opponentRaiseButton: {fileID: 206030619}
-  opponentFoldButton: {fileID: 1446991809}
+  callButtons:
+  - {fileID: 1249470171}
+  - {fileID: 986980035}
+  raiseButtons:
+  - {fileID: 750193781}
+  - {fileID: 206030619}
+  foldButtons:
+  - {fileID: 1101671051}
+  - {fileID: 1446991809}
   restartButton: {fileID: 136041037}
 --- !u!4 &1943318076
 Transform:

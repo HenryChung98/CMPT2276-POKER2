@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class UIManager : MonoBehaviour
 {
@@ -14,12 +15,9 @@ public class UIManager : MonoBehaviour
     public Sprite cardBackSprite;
 
     [Header("Buttons")]
-    public Button playerCallButton;
-    public Button playerRaiseButton;
-    public Button playerFoldButton;
-    public Button opponentCallButton;
-    public Button opponentRaiseButton;
-    public Button opponentFoldButton;
+    public Button[] callButtons;
+    public Button[] raiseButtons;
+    public Button[] foldButtons;
     public Button restartButton;
 
     public void UpdateMoneyUI(int pot, int playerChips, int opponentChips)
@@ -53,18 +51,40 @@ public class UIManager : MonoBehaviour
             var ui = holder.GetChild(i).GetComponent<CardUI>();
             ui.SetFaceDown(false);
         }
-        Debug.Log(restartButton.interactable);
     }
 
-    public void UpdateButtonStates(bool isPlayerTurn, bool isOpponentTurn)
+    public void UpdateButtonStates(int activePlayerIndex, List<Player> allPlayers)
     {
-        playerCallButton.interactable = isPlayerTurn;
-        playerRaiseButton.interactable = isPlayerTurn;
-        playerFoldButton.interactable = isPlayerTurn;
-        opponentCallButton.interactable = isOpponentTurn;
-        opponentRaiseButton.interactable = isOpponentTurn;
-        opponentFoldButton.interactable = isOpponentTurn;
+        // all buttons are disabled
+        if (activePlayerIndex == -1)
+        {
+            foreach (var btn in callButtons) btn.interactable = false;
+            foreach (var btn in raiseButtons) btn.interactable = false;
+            foreach (var btn in foldButtons) btn.interactable = false;
+            restartButton.interactable = false;
+            return;
+        }
 
+        // if at least one player all-in, nobody is allowed to raise
+        bool anyoneAllIn = false;
+        foreach (var player in allPlayers)
+        {
+            if (player.HasAllIn)
+            {
+                anyoneAllIn = true;
+                break;
+            }
+        }
+
+        for (int i = 0; i < allPlayers.Count && i < callButtons.Length; i++)
+        {
+            bool isThisPlayerTurn = (i == activePlayerIndex);
+            bool canAct = isThisPlayerTurn && !allPlayers[i].HasFolded;
+
+            callButtons[i].interactable = canAct;
+            raiseButtons[i].interactable = canAct && !anyoneAllIn;
+            foldButtons[i].interactable = canAct && !anyoneAllIn;
+        }
         restartButton.interactable = false;
     }
 

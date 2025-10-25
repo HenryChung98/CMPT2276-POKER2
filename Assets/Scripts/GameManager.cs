@@ -66,7 +66,7 @@ public class GameManager : MonoBehaviour
     {
         deckManager.Shuffle();
         DealHoleCards();
-        ResetAllPlayerStatus();
+        ResetAllPlayerStatus(true); // if the argument is true, reset player.HasAllIn as well
         bettingManager.PostBlind(players, dealerIndex);
         bettorIndex = (dealerIndex + 2) % players.Count;
         currentState = GameState.PreFlop;
@@ -102,9 +102,7 @@ public class GameManager : MonoBehaviour
     // need to modify in future when we add more than 2 ai
     private void UpdateButtonStates()
     {
-        bool isPlayerTurn = IsPlayerTurn(player);
-        bool isOpponentTurn = IsPlayerTurn(opponent);
-        uiManager.UpdateButtonStates(isPlayerTurn, isOpponentTurn);
+        uiManager.UpdateButtonStates(bettorIndex, players);
     }
     // ============================= /Update UIs =============================
 
@@ -115,6 +113,7 @@ public class GameManager : MonoBehaviour
         dealerIndex = (dealerIndex + 1) % players.Count;
         ClearAllCardHolders();
         bettingManager.ResetPot();
+        UpdateStateMessage("");
         StartNewRound();
     }
 
@@ -136,7 +135,6 @@ public class GameManager : MonoBehaviour
             int amount = Mathf.Max(0, other.BetThisRound - caller.BetThisRound);
             bettingManager.Call(caller, amount);
             AdvanceTurn();
-            NextPhase();
         }
         else
         {
@@ -170,7 +168,7 @@ public class GameManager : MonoBehaviour
         Player winner = GetSoleRemainingPlayer();
         if (winner != null)
         {
-            uiManager.UpdateButtonStates(false, false);
+            uiManager.UpdateButtonStates(-1, players);
             bettingManager.PayoutChips(winner, bettingManager.Pot);
             bettingManager.ResetPot();
             UpdateMoneyUI();
@@ -257,11 +255,11 @@ public class GameManager : MonoBehaviour
     }
 
     // set all player.HasActed = false / player.BetThisRound = 0
-    private void ResetAllPlayerStatus()
+    private void ResetAllPlayerStatus(bool resetGame = false)
     {
         foreach (var p in players)
         {
-            p.ResetStatus();
+            p.ResetStatus(resetGame);
         }
     }
 
@@ -270,6 +268,7 @@ public class GameManager : MonoBehaviour
         NextBettor();
         UpdateMoneyUI();
         UpdateButtonStates();
+        NextPhase();
     }
     // ============================= /flow logics =============================
 
@@ -336,7 +335,7 @@ public class GameManager : MonoBehaviour
 
     public void Showdown()
     {
-        uiManager.UpdateButtonStates(false, false);
+        uiManager.UpdateButtonStates(-1, players);
         uiManager.RevealCards(opponentCardsHolder);
 
         var playerResult = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
