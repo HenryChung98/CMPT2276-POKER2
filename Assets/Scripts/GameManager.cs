@@ -16,6 +16,9 @@ public class GameManager : MonoBehaviour
     public UIManager uiManager;
     public TextMeshProUGUI stateText;
 
+    public TextMeshProUGUI currentHandText;     //text display for Check Hand button
+    public GuidebookUI guidebookUI;             //reference to your guidebook panel
+
 
     // player objects
     private Player player;
@@ -80,12 +83,16 @@ public class GameManager : MonoBehaviour
     {
         var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
         Debug.Log($"You currently have: {res.Description}");
+
+        UpdateGuidebook();
     }
     public void CheckOpponentHand()
     {
         var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(opponent.HoleCards));
         Debug.Log($"opponent currently have: {res.Description}");
     }
+
+        
     private void UpdateStateMessage(string msg)
     {
         stateText.text = msg;
@@ -105,6 +112,19 @@ public class GameManager : MonoBehaviour
         uiManager.UpdateButtonStates(bettorIndex, players);
     }
     // ============================= /Update UIs =============================
+
+    public List<CardData> GetPlayerAllCardsForUI()
+    {
+        return GetAllCards(player.HoleCards);
+    }
+
+    // Tells the guidebook to update highlight/description
+    private void UpdateGuidebook()
+    {
+        if (guidebookUI != null)
+            guidebookUI.Refresh(GetPlayerAllCardsForUI());
+    }
+    
 
 
     // ============================= Buttons you can hook in the Inspector =============================
@@ -304,7 +324,11 @@ public class GameManager : MonoBehaviour
             CardData opponentCard = deckManager.DrawCard();
             opponent.HoleCards.Add(opponentCard);
             uiManager.DisplayCard(opponentCard, opponentCardsHolder);
+
+
         }
+
+        UpdateGuidebook(); //UpdateGuidebook
     }
 
     void DealCommunityCards(int num)
@@ -320,6 +344,7 @@ public class GameManager : MonoBehaviour
             communityCardList.Add(card);
             uiManager.DisplayCard(card, communityCardsHolder);
         }
+        UpdateGuidebook();
     }
 
 
@@ -368,6 +393,7 @@ public class GameManager : MonoBehaviour
         }
 
         UpdateMoneyUI();
+        UpdateGuidebook();
     }
     // ============================= showdown =============================
 }
