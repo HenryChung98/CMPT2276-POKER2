@@ -16,7 +16,7 @@ public class GameManager : MonoBehaviour
     public UIManager uiManager;
     public TextMeshProUGUI stateText;
 
-    public TextMeshProUGUI currentHandText;     //text display for Check Hand button
+    //public TextMeshProUGUI currentHandText;     //text display for Check Hand button
     public GuidebookUI guidebookUI;             //reference to your guidebook panel
 
 
@@ -73,8 +73,7 @@ public class GameManager : MonoBehaviour
         bettingManager.PostBlind(players, dealerIndex);
         bettorIndex = (dealerIndex + 2) % players.Count;
         currentState = GameState.PreFlop;
-        UpdateMoneyUI();
-        UpdateButtonStates();
+        UpdateUIs();
     }
 
 
@@ -99,32 +98,18 @@ public class GameManager : MonoBehaviour
     }
     // ================================================================================================================
 
-    // ============================= Update UIs =============================
-    private void UpdateMoneyUI()
+    private void UpdateUIs()
     {
         uiManager.UpdateMoneyUI(bettingManager.Pot, player.Chips, opponent.Chips);
-    }
-
-
-    // need to modify in future when we add more than 2 ai
-    private void UpdateButtonStates()
-    {
         uiManager.UpdateButtonStates(bettorIndex, players);
-    }
-    // ============================= /Update UIs =============================
-
-    public List<CardData> GetPlayerAllCardsForUI()
-    {
-        return GetAllCards(player.HoleCards);
     }
 
     // Tells the guidebook to update highlight/description
     private void UpdateGuidebook()
     {
-        if (guidebookUI != null)
-            guidebookUI.Refresh(GetPlayerAllCardsForUI());
+        guidebookUI.Refresh(GetAllCards(player.HoleCards));
     }
-    
+
 
 
     // ============================= Buttons you can hook in the Inspector =============================
@@ -191,7 +176,7 @@ public class GameManager : MonoBehaviour
             uiManager.UpdateButtonStates(-1, players);
             bettingManager.PayoutChips(winner, bettingManager.Pot);
             bettingManager.ResetPot();
-            UpdateMoneyUI();
+            UpdateUIs();
             uiManager.restartButton.interactable = true;
             currentState = GameState.Showdown;
             Debug.Log("game ended by fold");
@@ -286,8 +271,7 @@ public class GameManager : MonoBehaviour
     private void AdvanceTurn()
     {
         NextBettor();
-        UpdateMoneyUI();
-        UpdateButtonStates();
+        UpdateUIs();
         NextPhase();
     }
     // ============================= /flow logics =============================
@@ -324,10 +308,7 @@ public class GameManager : MonoBehaviour
             CardData opponentCard = deckManager.DrawCard();
             opponent.HoleCards.Add(opponentCard);
             uiManager.DisplayCard(opponentCard, opponentCardsHolder);
-
-
         }
-
         UpdateGuidebook(); //UpdateGuidebook
     }
 
@@ -392,7 +373,7 @@ public class GameManager : MonoBehaviour
             bettingManager.ResetPot();
         }
 
-        UpdateMoneyUI();
+        UpdateUIs();
         UpdateGuidebook();
     }
     // ============================= showdown =============================

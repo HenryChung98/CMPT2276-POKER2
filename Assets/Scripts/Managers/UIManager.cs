@@ -87,6 +87,4 @@ public class UIManager : MonoBehaviour
         }
         restartButton.interactable = false;
     }
-
-
 }
