@@ -12,17 +12,18 @@ public class BettingManager
 
     public void PostBlind(List<Player> players, int dealerIndex)
     {
-        int next = (dealerIndex + 1) % players.Count;
+        int smallBlinder = (dealerIndex + 1) % players.Count;
+        int bigBlinder = (dealerIndex + 2) % players.Count;
 
-        players[dealerIndex].BetThisRound = players[dealerIndex].Bet(smallBlind); 
-        pot += players[dealerIndex].BetThisRound;
-        Debug.Log($"{players[dealerIndex].Name}(dealer) post small blind");
+        players[smallBlinder].BetThisRound = players[smallBlinder].Bet(smallBlind); 
+        pot += players[smallBlinder].BetThisRound;
+        Debug.Log($"{players[smallBlinder].Name}(dealer) post small blind");
 
-        players[next].BetThisRound = players[next].Bet(bigBlind);
-        pot += players[next].BetThisRound;
-        Debug.Log($"{players[next].Name} post big blind");
+        players[bigBlinder].BetThisRound = players[bigBlinder].Bet(bigBlind);
+        pot += players[bigBlinder].BetThisRound;
+        Debug.Log($"{players[bigBlinder].Name} post big blind");
 
-        players[next].HasActed = true;
+        players[bigBlinder].HasActed = true;
     }
 
     //public void PlaceBet(Player player, Player opponent, int amount)
