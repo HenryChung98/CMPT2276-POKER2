@@ -24,8 +24,8 @@ public class GameManager : MonoBehaviour
     private Player player;
     private Player opponent;
     private List<Player> players;
-    private int dealerIndex = 0;
-    private int bettorIndex = 0;
+    private int dealerIndex = 0; //to track the dealer for postblind players
+    private int bettorIndex = 0; //to track who is the next bettor after small blind and big blind 
 
     // public cards
     private readonly List<CardData> communityCardList = new();
