@@ -5,8 +5,32 @@ using UnityEngine.SceneManagement;
 
 public class ChangeScene : MonoBehaviour
 {
-    public void GotoGame()
+    public static ChangeScene Instance { get; private set; }
+
+    private void Awake()
     {
-        SceneManager.LoadScene("SampleScene");
+        // singleton
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
+
+        public void GotoGame()
+    {
+        SceneManager.LoadScene("GamePlay");
+    }
+
+    public void GotoTutorial()
+    {
+        SceneManager.LoadScene("Tutorial");
+    }
+
+    public void GotoMainMenu()
+    {
+        SceneManager.LoadScene("MainMenu");
     }
 }
