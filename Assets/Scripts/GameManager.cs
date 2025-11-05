@@ -16,6 +16,13 @@ public class GameManager : MonoBehaviour
     public UIManager uiManager;
     public TextMeshProUGUI stateText;
 
+    // --- Auto Play (opponent only) ---
+    [Header("Auto Play")]
+    public bool autoPlay = false;                 // current state
+    public float autoDelay = 0.6f;                // delay between auto decisions
+    private Coroutine autoLoop;                   // running loop (if any)
+    public TextMeshProUGUI autoPlayButtonText;    // drag the Button's TMP text here
+
     //public TextMeshProUGUI currentHandText;     //text display for Check Hand button
     public GuidebookUI guidebookUI;             //reference to your guidebook panel
 
@@ -60,11 +67,92 @@ public class GameManager : MonoBehaviour
 
         players = new List<Player> { player, opponent }; // to define a dealer, bettor
     }
+    private void UpdateAutoPlayUI()
+    {
+        if (autoPlayButtonText == null) return;
+
+        autoPlayButtonText.text = autoPlay ? "Stop Auto: ON" : "Auto Play: OFF";
+    }
 
     void Start()
     {
         StartNewRound();
+        UpdateAutoPlayUI();
     }
+
+
+    // Called by the Auto button (OnClick)
+    public void ToggleAutoPlayButton()
+    {
+        autoPlay = !autoPlay;
+
+        // stop previous loop if running
+        if (autoLoop != null)
+        {
+            StopCoroutine(autoLoop);
+            autoLoop = null;
+        }
+
+        // start a fresh loop if turning ON
+        if (autoPlay)
+            autoLoop = StartCoroutine(AutoPlayLoop());
+
+        // update button label
+        if (autoPlayButtonText != null)
+            autoPlayButtonText.text = autoPlay ? "Auto: ON" : "Auto: OFF";
+
+
+
+        uiManager.UpdateButtonStates(bettorIndex, players);
+    }
+
+    private System.Collections.IEnumerator AutoPlayLoop()
+    {
+        var wait = new WaitForSeconds(autoDelay);
+
+        while (autoPlay) // will exit immediately when autoPlay becomes false
+        {
+            // If hand finished, restart a new round automatically
+            if (currentState == GameState.Showdown)
+            {
+                yield return wait;
+                if (!autoPlay) yield break;
+                RestartButton();
+                yield return wait;
+                continue;
+            }
+
+            // Only act when it's the opponent's turn (index 1)
+            if (bettorIndex == 1)
+            {
+                var actor = players[1];
+                var other = players[0];
+
+                if (!actor.HasFolded)
+                {
+                    bool isMatched = actor.BetThisRound >= other.BetThisRound;
+                    bool tryRaise = isMatched && !actor.HasAllIn && !other.HasAllIn && Random.value < 0.25f;
+
+                    if (tryRaise && actor.CanBet(bettingManager.bigBlind))
+                    {
+                        int target = other.BetThisRound + Mathf.Max(bettingManager.bigBlind, other.BetThisRound);
+                        bettingManager.Raise(players, actor, target);
+                        actor.HasActed = true;
+                    }
+                    else
+                    {
+                        int toCall = Mathf.Max(0, other.BetThisRound - actor.BetThisRound);
+                        bettingManager.Call(actor, toCall);
+                    }
+
+                    AdvanceTurn();
+                }
+            }
+
+            yield return wait;
+        }
+    }
+
     private void StartNewRound()
     {
         deckManager.Shuffle();
