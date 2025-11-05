@@ -15,16 +15,14 @@ public class GameManager : MonoBehaviour
     public Sprite[] cardSprites;
     public UIManager uiManager;
     public TextMeshProUGUI stateText;
+    //public TextMeshProUGUI currentHandText;     //text display for Check Hand button
+    public GuidebookUI guidebookUI;             //reference to your guidebook panel
 
     // --- Auto Play (opponent only) ---
     [Header("Auto Play")]
     public bool autoPlay = false;                 // current state
-    public float autoDelay = 0.6f;                // delay between auto decisions
-    private Coroutine autoLoop;                   // running loop (if any)
+    public float delay = 0.6f;                // delay between auto decisions
     public TextMeshProUGUI autoPlayButtonText;    // drag the Button's TMP text here
-
-    //public TextMeshProUGUI currentHandText;     //text display for Check Hand button
-    public GuidebookUI guidebookUI;             //reference to your guidebook panel
 
 
     // player objects
@@ -44,6 +42,48 @@ public class GameManager : MonoBehaviour
 
     public static GameManager Instance { get; private set; }
     private GameState currentState = GameState.PreFlop;
+
+
+    // ============================ These are for debugging. we won't need these in the end ============================
+    private void UpdateAutoPlayUI()
+    {
+        if (autoPlayButtonText == null) return;
+
+        autoPlayButtonText.text = autoPlay ? "Stop Auto: ON" : "Auto Play: OFF";
+    }
+
+    public void ToggleAutoPlayButton()
+    {
+        autoPlay = !autoPlay;
+        Invoke(nameof(AIBehavior), delay);
+        autoPlayButtonText.text = autoPlay ? "Auto: ON" : "Auto: OFF";
+    }
+
+    public void CheckPlayerHand()
+    {
+        var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
+        Debug.Log($"You currently have: {res.Description}");
+
+        UpdateGuidebook();
+    }
+    public void CheckOpponentHand()
+    {
+        var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(opponent.HoleCards));
+        Debug.Log($"opponent currently have: {res.Description}");
+    }
+
+
+    private void UpdateStateMessage(string msg)
+    {
+        stateText.text = msg;
+    }
+
+    public void OpponentCallButton() => HandleCall(opponent, player);
+    public void OpponentRaiseButton() => HandleRaise(opponent, player);
+    public void OpponentFoldButton() => HandleFold(opponent, opponentCardsHolder);
+
+    // ================================================================================================================
+
 
     private void Awake()
     {
@@ -67,12 +107,6 @@ public class GameManager : MonoBehaviour
 
         players = new List<Player> { player, opponent }; // to define a dealer, bettor
     }
-    private void UpdateAutoPlayUI()
-    {
-        if (autoPlayButtonText == null) return;
-
-        autoPlayButtonText.text = autoPlay ? "Stop Auto: ON" : "Auto Play: OFF";
-    }
 
     void Start()
     {
@@ -80,76 +114,15 @@ public class GameManager : MonoBehaviour
         UpdateAutoPlayUI();
     }
 
-
-    // Called by the Auto button (OnClick)
-    public void ToggleAutoPlayButton()
+    private void AIBehavior()
     {
-        autoPlay = !autoPlay;
-
-        // stop previous loop if running
-        if (autoLoop != null)
+        if (autoPlay && IsPlayerTurn(opponent) && currentState != GameState.Showdown)
         {
-            StopCoroutine(autoLoop);
-            autoLoop = null;
-        }
-
-        // start a fresh loop if turning ON
-        if (autoPlay)
-            autoLoop = StartCoroutine(AutoPlayLoop());
-
-        // update button label
-        if (autoPlayButtonText != null)
-            autoPlayButtonText.text = autoPlay ? "Auto: ON" : "Auto: OFF";
-
-
-
-        uiManager.UpdateButtonStates(bettorIndex, players);
-    }
-
-    private System.Collections.IEnumerator AutoPlayLoop()
-    {
-        var wait = new WaitForSeconds(autoDelay);
-
-        while (autoPlay) // will exit immediately when autoPlay becomes false
-        {
-            // If hand finished, restart a new round automatically
-            if (currentState == GameState.Showdown)
-            {
-                yield return wait;
-                if (!autoPlay) yield break;
-                RestartButton();
-                yield return wait;
-                continue;
-            }
-
-            // Only act when it's the opponent's turn (index 1)
-            if (bettorIndex == 1)
-            {
-                var actor = players[1];
-                var other = players[0];
-
-                if (!actor.HasFolded)
-                {
-                    bool isMatched = actor.BetThisRound >= other.BetThisRound;
-                    bool tryRaise = isMatched && !actor.HasAllIn && !other.HasAllIn && Random.value < 0.25f;
-
-                    if (tryRaise && actor.CanBet(bettingManager.bigBlind))
-                    {
-                        int target = other.BetThisRound + Mathf.Max(bettingManager.bigBlind, other.BetThisRound);
-                        bettingManager.Raise(players, actor, target);
-                        actor.HasActed = true;
-                    }
-                    else
-                    {
-                        int toCall = Mathf.Max(0, other.BetThisRound - actor.BetThisRound);
-                        bettingManager.Call(actor, toCall);
-                    }
-
-                    AdvanceTurn();
-                }
-            }
-
-            yield return wait;
+            bool tryRaise = !opponent.HasAllIn && !player.HasAllIn && Random.value < 0.5f;
+            bool tryFold = !opponent.HasAllIn && !player.HasAllIn && Random.value < 0.2f;
+            if (tryRaise) HandleRaise(opponent, player);
+            else if (tryFold) HandleFold(opponent, opponentCardsHolder);
+            else HandleCall(opponent, player);
         }
     }
 
@@ -163,30 +136,8 @@ public class GameManager : MonoBehaviour
         currentState = GameState.PreFlop;
         UpdateMoneyUI();
         UpdateButtonStates();
+        Invoke(nameof(AIBehavior), delay);
     }
-
-
-    // ============================ These are fur debugging. we won't need these in future ============================
-    public void CheckPlayerHand()
-    {
-        var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
-        Debug.Log($"You currently have: {res.Description}");
-
-        UpdateGuidebook();
-    }
-    public void CheckOpponentHand()
-    {
-        var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(opponent.HoleCards));
-        Debug.Log($"opponent currently have: {res.Description}");
-    }
-
-
-    private void UpdateStateMessage(string msg)
-    {
-        stateText.text = msg;
-    }
-    // ================================================================================================================
-
     // ============================= Update UIs =============================
     private void UpdateMoneyUI()
     {
@@ -220,17 +171,13 @@ public class GameManager : MonoBehaviour
     {
         dealerIndex = (dealerIndex + 1) % players.Count;
         ClearAllCardHolders();
-        bettingManager.ResetPot();
         UpdateStateMessage("");
         StartNewRound();
     }
 
     public void PlayerCallButton() => HandleCall(player, opponent);
-    public void OpponentCallButton() => HandleCall(opponent, player);
     public void PlayerRaiseButton() => HandleRaise(player, opponent);
-    public void OpponentRaiseButton() => HandleRaise(opponent, player);
     public void PlayerFoldButton() => HandleFold(player, playerCardsHolder);
-    public void OpponentFoldButton() => HandleFold(opponent, opponentCardsHolder);
 
     // ============================= /buttons =============================
 
@@ -246,7 +193,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("ERROR");
+            Debug.Log($"{caller} cannot call");
         }
     }
 
@@ -260,7 +207,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("ERROR");
+            Debug.Log($"{raiser} cannot raise");
         }
     }
 
@@ -278,7 +225,6 @@ public class GameManager : MonoBehaviour
         {
             uiManager.UpdateButtonStates(-1, players);
             bettingManager.PayoutChips(winner, bettingManager.Pot);
-            bettingManager.ResetPot();
             UpdateMoneyUI();
             uiManager.restartButton.interactable = true;
             currentState = GameState.Showdown;
@@ -303,22 +249,18 @@ public class GameManager : MonoBehaviour
             case GameState.PreFlop:
                 DealCommunityCards(3);
                 currentState = GameState.Flop;
-                Debug.Log("flop phase");
                 break;
             case GameState.Flop:
                 DealCommunityCards(1);
                 currentState = GameState.Turn;
-                Debug.Log("turn phase");
                 break;
             case GameState.Turn:
                 DealCommunityCards(1);
                 currentState = GameState.River;
-                Debug.Log("river phase");
                 break;
             case GameState.River:
                 Showdown();
                 currentState = GameState.Showdown;
-                Debug.Log("showdown phase");
                 return;
         }
         ResetAllPlayerStatus();
@@ -377,6 +319,8 @@ public class GameManager : MonoBehaviour
         UpdateMoneyUI();
         UpdateButtonStates();
         NextPhase();
+        Invoke(nameof(AIBehavior), delay);
+
     }
     // ============================= /flow logics =============================
 
@@ -461,14 +405,12 @@ public class GameManager : MonoBehaviour
             UpdateStateMessage("You win");
             Debug.Log($"You win! {playerResult.Description} beats {opponentResult.Description}. +{bettingManager.Pot} chips.");
             bettingManager.PayoutChips(player, bettingManager.Pot);
-            bettingManager.ResetPot();
         }
         else if (cmp < 0)
         {
             UpdateStateMessage("Opponent win");
             Debug.Log($"Opponent wins. {opponentResult.Description} beats {playerResult.Description}.");
             bettingManager.PayoutChips(opponent, bettingManager.Pot);
-            bettingManager.ResetPot();
         }
         else
         {
@@ -477,7 +419,6 @@ public class GameManager : MonoBehaviour
             int split = bettingManager.Pot / 2;
             bettingManager.PayoutChips(player, split);
             bettingManager.PayoutChips(opponent, bettingManager.Pot - split);
-            bettingManager.ResetPot();
         }
 
         UpdateMoneyUI();

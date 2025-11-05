@@ -72,9 +72,6 @@ public class BettingManager
     public void PayoutChips(Player player, int amount)
     {
         player.Chips += amount;
-    }
-    public void ResetPot()
-    {
-        pot = 0;
+        pot -= amount;
     }
 }
