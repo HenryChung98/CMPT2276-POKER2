@@ -8,12 +8,18 @@ enum TutorialState
     first,
     second,
     third,
+    fourth,
+    fifth,
+    sixth,
+    seventh,
+    eight,
     last,
 }
 public class TutorialManager : MonoBehaviour
 {
     private TutorialState currentState = TutorialState.first;
     public Image[] speechBubbles; // create and add speech bubble at the inspector as you need
+    public Image handRankImage;
 
     private void Start()
     {
@@ -22,6 +28,7 @@ public class TutorialManager : MonoBehaviour
             bubble.gameObject.SetActive(false);
         }
         speechBubbles[0].gameObject.SetActive(true);
+        handRankImage.gameObject.SetActive(false);
 
     }
     private void RenderTutorial()
@@ -49,7 +56,27 @@ public class TutorialManager : MonoBehaviour
                 Debug.Log("third page");
                 speechBubbles[2].gameObject.SetActive(true);
                 break;
-
+            case TutorialState.fourth:
+                Debug.Log("fourth page");
+                speechBubbles[3].gameObject.SetActive(true);
+                handRankImage.gameObject.SetActive(true);
+                break;
+            case TutorialState.fifth:
+                Debug.Log("fifth page");
+                speechBubbles[4].gameObject.SetActive(true);
+                break;
+            case TutorialState.sixth:
+                Debug.Log("sixth page");
+                speechBubbles[5].gameObject.SetActive(true);
+                break;
+            case TutorialState.seventh:
+                Debug.Log("seventh page");
+                speechBubbles[6].gameObject.SetActive(true);
+                break;
+            case TutorialState.eight:
+                Debug.Log("eight page");
+                speechBubbles[7].gameObject.SetActive(true);
+                break;
 
         }
     }
