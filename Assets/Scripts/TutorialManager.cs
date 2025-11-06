@@ -49,7 +49,7 @@ public class TutorialManager : MonoBehaviour
                 Debug.Log("eight page");
                 break;
         }
-        speechBubble.transform.position = objectTransforms[currentPage - 1].position;
+        //speechBubble.transform.position = objectTransforms[currentPage - 1].position;
     }
 
 

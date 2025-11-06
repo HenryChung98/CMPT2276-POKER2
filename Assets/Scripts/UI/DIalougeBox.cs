@@ -18,6 +18,7 @@ public class DIalougeBox : MonoBehaviour
     {
         _text = GetComponent<TMP_Text>();
     }
+
     public void UpdateDialogue(int currentPage)
     {
         if (currentPage - 1 < _dialogueLines.Count)
