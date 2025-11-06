@@ -1,109 +1,83 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-
-// you can add more states or rename them if you want.
-enum TutorialState
-{
-    first,
-    second,
-    third,
-    fourth,
-    fifth,
-    sixth,
-    seventh,
-    eight,
-    last,
-}
 public class TutorialManager : MonoBehaviour
 {
-    private TutorialState currentState = TutorialState.first;
-    public Image[] speechBubbles; // create and add speech bubble at the inspector as you need
+    private int currentPage = 1;
+    private const int first = 1;
+    private const int last = 8;
+
     public Image handRankImage;
+    public DIalougeBox dialogueBox;
+    public Image speechBubble;
+    public Transform[] objectTransforms;
 
     private void Start()
     {
-        foreach (var bubble in speechBubbles)
-        {
-            bubble.gameObject.SetActive(false);
-        }
-        speechBubbles[0].gameObject.SetActive(true);
-        handRankImage.gameObject.SetActive(false);
-
+        RenderTutorial();
     }
     private void RenderTutorial()
     {
-        // Deactivate all speech bubbles first
-        foreach (var bubble in speechBubbles)
-        {
-            bubble.gameObject.SetActive(false);
-        }
+        handRankImage.gameObject.SetActive(false);
+        dialogueBox.UpdateDialogue(currentPage);
 
-        // Activate only the speech bubble based on the current TutorialState.
-        switch (currentState)
+        switch (currentPage)
         {
-            case TutorialState.first:
+            case 1:
                 Debug.Log("welcome");
-                speechBubbles[0].gameObject.SetActive(true);
                 break;
-
-            case TutorialState.second:
+            case 2:
                 Debug.Log("second page");
-                speechBubbles[1].gameObject.SetActive(true);
                 break;
-
-            case TutorialState.third:
+            case 3:
                 Debug.Log("third page");
-                speechBubbles[2].gameObject.SetActive(true);
                 break;
-            case TutorialState.fourth:
+            case 4:
                 Debug.Log("fourth page");
-                speechBubbles[3].gameObject.SetActive(true);
                 handRankImage.gameObject.SetActive(true);
                 break;
-            case TutorialState.fifth:
+            case 5:
                 Debug.Log("fifth page");
-                speechBubbles[4].gameObject.SetActive(true);
                 break;
-            case TutorialState.sixth:
+            case 6:
                 Debug.Log("sixth page");
-                speechBubbles[5].gameObject.SetActive(true);
                 break;
-            case TutorialState.seventh:
+            case 7:
                 Debug.Log("seventh page");
-                speechBubbles[6].gameObject.SetActive(true);
                 break;
-            case TutorialState.eight:
+            case 8:
                 Debug.Log("eight page");
-                speechBubbles[7].gameObject.SetActive(true);
                 break;
-
         }
+        speechBubble.transform.position = objectTransforms[currentPage - 1].position;
     }
+
+
+
 
     public void NextState()
     {
-        if (currentState < TutorialState.last)
+        if (currentPage < last)
         {
-            currentState++;
+            currentPage++;
             RenderTutorial();
         }
         else
         {
-            Debug.Log("Already at last state: " + currentState);
+            Debug.Log("Already at last state: " + currentPage);
         }
     }
 
     public void PreviousState()
     {
-        if (currentState > TutorialState.first)
+        if (currentPage > first)
         {
-            currentState--;
+            currentPage--;
             RenderTutorial();
         }
         else
         {
-            Debug.Log("Already at first state: " + currentState);
+            Debug.Log("Already at first state: " + currentPage);
         }
     }
 }

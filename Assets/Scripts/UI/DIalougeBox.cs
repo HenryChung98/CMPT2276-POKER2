@@ -1,22 +1,28 @@
 using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 
 public class DIalougeBox : MonoBehaviour
 {
     [SerializeField]
     [TextArea]
-    private List<string> _dialougeLine;
+    private List<string> _dialogueLines;
     private int _lineIndex;
 
     private TMP_Text _text;
+
+    public TutorialManager tutorialManager;
 
     private void Start()
     {
         _text = GetComponent<TMP_Text>();
     }
-    private void Update()
+    public void UpdateDialogue(int currentPage)
     {
-        _text.SetText(_dialougeLine[_lineIndex++]);
+        if (currentPage - 1 < _dialogueLines.Count)
+        {
+            _text.SetText(_dialogueLines[currentPage - 1]);
+        }
     }
 }
