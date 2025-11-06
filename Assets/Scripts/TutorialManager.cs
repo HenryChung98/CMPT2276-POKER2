@@ -1,16 +1,25 @@
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class TutorialManager : MonoBehaviour
 {
-    private int currentPage = 1;
-    private const int first = 1;
-    private const int last = 8;
+    // messages
+    [SerializeField]
+    [TextArea]
+    private List<string> dialogueLines;
 
-    public Image handRankImage;
-    public DIalougeBox dialogueBox;
-    public Image speechBubble;
+    // page
+    private int currentPage = 0;
+    private const int first = 0;
+    private const int last = 7;
+
+    [Header("UI Elements")]
     public Transform[] objectTransforms;
+    public Image speechBubble;
+    public TextMeshProUGUI speechBubbleText;
+    public Image handRankImage;
 
     private void Start()
     {
@@ -19,41 +28,38 @@ public class TutorialManager : MonoBehaviour
     private void RenderTutorial()
     {
         handRankImage.gameObject.SetActive(false);
-        dialogueBox.UpdateDialogue(currentPage);
+        speechBubbleText.SetText(dialogueLines[currentPage]);
 
         switch (currentPage)
         {
-            case 1:
+            case 0:
                 Debug.Log("welcome");
                 break;
-            case 2:
+            case 1:
                 Debug.Log("second page");
                 break;
-            case 3:
+            case 2:
                 Debug.Log("third page");
                 break;
-            case 4:
+            case 3:
                 Debug.Log("fourth page");
                 handRankImage.gameObject.SetActive(true);
                 break;
-            case 5:
+            case 4:
                 Debug.Log("fifth page");
                 break;
-            case 6:
+            case 5:
                 Debug.Log("sixth page");
                 break;
-            case 7:
+            case 6:
                 Debug.Log("seventh page");
                 break;
-            case 8:
+            case 7:
                 Debug.Log("eight page");
                 break;
         }
-        //speechBubble.transform.position = objectTransforms[currentPage - 1].position;
+        speechBubble.transform.position = objectTransforms[currentPage - 1].position;
     }
-
-
-
 
     public void NextState()
     {
@@ -64,7 +70,7 @@ public class TutorialManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("Already at last state: " + currentPage);
+            Debug.Log("Already at last page");
         }
     }
 
@@ -77,7 +83,7 @@ public class TutorialManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("Already at first state: " + currentPage);
+            Debug.Log("Already at first page");
         }
     }
 }
