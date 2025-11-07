@@ -13,50 +13,88 @@ public class TutorialManager : MonoBehaviour
     // page
     private int currentPage = 0;
     private const int first = 0;
-    private const int last = 7;
+    private const int last = 9;
 
     [Header("UI Elements")]
     public Transform[] objectTransforms;
-    public Image speechBubble;
+    public GameObject speechBubble;
+    public Image speechBubbleImage;
     public TextMeshProUGUI speechBubbleText;
     public Image handRankImage;
+    private Vector3 orginalScale;
+    public GameObject Playerhand, CommunityCard;
+
 
     private void Start()
     {
+        orginalScale = speechBubbleImage.transform.localScale;
         RenderTutorial();
+        
+
     }
     private void RenderTutorial()
     {
         handRankImage.gameObject.SetActive(false);
+        Playerhand.gameObject.SetActive(false);
+        CommunityCard.gameObject.SetActive(false);
         speechBubbleText.SetText(dialogueLines[currentPage]);
 
         switch (currentPage)
         {
             case 0:
                 Debug.Log("welcome");
+                speechBubbleImage.transform.localScale = orginalScale;
                 break;
             case 1:
+                speechBubbleImage.transform.localScale = new Vector3(1f,1f,0);
+                speechBubbleImage.transform.localScale *= 1.5f;
                 Debug.Log("second page");
                 break;
             case 2:
+                //display hand combination
+                speechBubbleImage.transform.localScale = new Vector3(1.2f,1.3f,0);
                 Debug.Log("third page");
-                break;
-            case 3:
-                Debug.Log("fourth page");
                 handRankImage.gameObject.SetActive(true);
                 break;
+            case 3:
+                //display the call button meaning
+                speechBubbleImage.transform.localScale = new Vector3(1.3f, 1.1f, 0);
+                handRankImage.gameObject.SetActive(false);
+                Debug.Log("fourth page");
+                break;
             case 4:
+                //Example of call
+                speechBubbleImage.transform.localScale = new Vector3(1.3f, 1.1f, 0);
                 Debug.Log("fifth page");
                 break;
             case 5:
+                //display raise button 
+                speechBubbleImage.transform.localScale = new Vector3(1.4f, 1.2f, 0);
                 Debug.Log("sixth page");
                 break;
             case 6:
+                //display fold button  meaning
+                speechBubbleImage.transform.localScale = new Vector3(1.3f, 1.1f, 0);
                 Debug.Log("seventh page");
                 break;
             case 7:
+                //hand card
                 Debug.Log("eight page");
+                Playerhand.gameObject.SetActive(true);
+                
                 break;
+            case 8:
+                //community card
+                Debug.Log("nineth page");
+                CommunityCard.gameObject.SetActive(true);
+                break;
+            case 9:
+                //display combination message
+                Debug.Log("tenth page");
+                Playerhand.gameObject.SetActive(true);
+                CommunityCard.gameObject.SetActive(true);
+                break;
+
         }
         speechBubble.transform.position = objectTransforms[currentPage].position;
     }
