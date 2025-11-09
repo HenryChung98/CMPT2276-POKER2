@@ -3346,6 +3346,7 @@ MonoBehaviour:
   playerTransforms:
   - {fileID: 1519187267}
   - {fileID: 770558136}
+  bettorButton: {fileID: 1820660571}
   autoPlay: 0
   delay: 0.6
   autoPlayButtonText: {fileID: 1024535213}
@@ -3782,6 +3783,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1342853057}
   m_CullTransparentMesh: 1
+--- !u!1 &1389556670
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1389556672}
+  - component: {fileID: 1389556671}
+  m_Layer: 0
+  m_Name: CardDealer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1389556671
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1389556670}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95a48ef2bf9975e429ceacebf75242bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CardDealer
+--- !u!4 &1389556672
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1389556670}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 603.3388, y: 560.4489, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1411262417 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7201671186106510053, guid: 1c2f78755ed067d44b9ce2df486ca778, type: 3}
@@ -5957,3 +6002,4 @@ SceneRoots:
   - {fileID: 2058636191}
   - {fileID: 1085654759}
   - {fileID: 1943318076}
+  - {fileID: 1389556672}
