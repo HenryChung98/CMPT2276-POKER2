@@ -26,22 +26,6 @@ public class BettingManager
         players[bigBlinder].HasActed = true;
     }
 
-    //public void PlaceBet(Player player, Player opponent, int amount)
-    //{
-    //if (!player.CanBet(amount))
-    //{
-    //    Debug.Log("Not enough chips.");
-    //    return;
-    //}
-    //// player bets, opponent auto-calls (toy logic)
-    //int playerBet = player.Bet(amount);
-    //pot += playerBet;
-
-    //int opponentBet = opponent.Bet(amount);
-    //pot += opponentBet;
-
-    //Debug.Log($"You bet {playerBet}. Opponent calls {opponentBet}. Pot is now {pot}.");
-    //}
     public void Call(Player player, int amount = 0) 
     {
         int playerBet = player.Bet(amount);

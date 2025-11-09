@@ -15,10 +15,13 @@ public class UIManager : MonoBehaviour
     public Sprite cardBackSprite;
 
     [Header("Buttons")]
-    public Button[] callButtons;
-    public Button[] raiseButtons;
-    public Button[] foldButtons;
+    public Button callButton;
+    public Button raiseButton;
+    public Button foldButton;
     public Button restartButton;
+
+    [Header("Transforms")]
+    public Transform deckTransform;
 
     public void UpdateMoneyUI(int pot, int playerChips, int opponentChips)
     {
@@ -55,16 +58,6 @@ public class UIManager : MonoBehaviour
 
     public void UpdateButtonStates(int activePlayerIndex, List<Player> allPlayers)
     {
-        // all buttons are disabled
-        if (activePlayerIndex == -1)
-        {
-            foreach (var btn in callButtons) btn.interactable = false;
-            foreach (var btn in raiseButtons) btn.interactable = false;
-            foreach (var btn in foldButtons) btn.interactable = false;
-            restartButton.interactable = false;
-            return;
-        }
-
         // if at least one player all-in, nobody is allowed to raise
         bool anyoneAllIn = false;
         foreach (var player in allPlayers)
@@ -76,15 +69,20 @@ public class UIManager : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < allPlayers.Count && i < callButtons.Length; i++)
-        {
-            bool isThisPlayerTurn = (i == activePlayerIndex);
-            bool canAct = isThisPlayerTurn && !allPlayers[i].HasFolded;
-
-            callButtons[i].interactable = canAct;
-            raiseButtons[i].interactable = canAct && !anyoneAllIn;
-            foldButtons[i].interactable = canAct && !anyoneAllIn;
+        if (activePlayerIndex == 0) {
+            callButton.interactable = true;
+            raiseButton.interactable = true && !anyoneAllIn;
+            foldButton.interactable = true && !anyoneAllIn;
         }
+        else {
+            callButton.interactable = false;
+            raiseButton.interactable = false;
+            foldButton.interactable = false;
+        }
+
         restartButton.interactable = false;
     }
+
+
+
 }
