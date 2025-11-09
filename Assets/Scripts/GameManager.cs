@@ -42,6 +42,7 @@ public class GameManager : MonoBehaviour
     // managers
     private BettingManager bettingManager;
     private DeckManager deckManager;
+    private CardDealer cardDealer;
 
     // etc
     public bool isAnimating = false;
@@ -112,6 +113,10 @@ public class GameManager : MonoBehaviour
         opponent = new Player("opponent", 1000, opponentCardsHolder, false);
 
         players = new List<Player> { player, opponent }; // to define a dealer, bettor
+        
+        // initialize dealer
+        cardDealer = gameObject.AddComponent<CardDealer>(); 
+        cardDealer.Initialize(deckManager, uiManager, delay);
     }
 
     void Start()
@@ -352,45 +357,15 @@ public class GameManager : MonoBehaviour
     // ============================= handle cards =============================
     void ClearAllCardHolders()
     {
-        // cards in holders go back to deck (copy the list elements from hole to deck)
-        deckManager.ReturnCards(player.HoleCards);
-        deckManager.ReturnCards(opponent.HoleCards);
-        deckManager.ReturnCards(communityCardList);
-        deckManager.ReturnCards(foldedCards);
-
-        // destroying game objects (UI)
-        uiManager.ClearCardHolder(playerCardsHolder);
-        uiManager.ClearCardHolder(opponentCardsHolder);
-        uiManager.ClearCardHolder(communityCardsHolder);
-
-        // clearing the lists
-        player.HoleCards.Clear();
-        opponent.HoleCards.Clear();
-        communityCardList.Clear();
+        cardDealer.ClearAllCards(player, opponent, communityCardList, foldedCards,
+                                 playerCardsHolder, opponentCardsHolder, communityCardsHolder);
     }
-
-
     IEnumerator DealHoleCards()
     {
-        // to prevent player from pressing button while animating
         isAnimating = true;
         UpdateButtonStates();
-        
-        for (int i = 0; i < 2; i++)
-        {
-            // player
-            CardData playerCard = deckManager.DrawCard();
-            player.HoleCards.Add(playerCard);
-            uiManager.DisplayCard(playerCard, playerCardsHolder);
-            yield return new WaitForSeconds(delay);
 
-            // opponent
-            CardData opponentCard = deckManager.DrawCard();
-            opponent.HoleCards.Add(opponentCard);
-            uiManager.DisplayCard(opponentCard, opponentCardsHolder);
-            yield return new WaitForSeconds(delay);
-
-        }
+        yield return StartCoroutine(cardDealer.DealHoleCards(player, playerCardsHolder, opponent, opponentCardsHolder));
 
         isAnimating = false;
         UpdateGuidebook();
@@ -401,22 +376,11 @@ public class GameManager : MonoBehaviour
     void DealCommunityCards(int num)
     {
         UpdateButtonStates();
-        if (communityCardList.Count >= 5)
-        {
-            return;
-        }
-
-        for (int i = 0; i < num && communityCardList.Count < 5; i++)
-        {
-            CardData card = deckManager.DrawCard();
-            communityCardList.Add(card);
-            uiManager.DisplayCard(card, communityCardsHolder);
-        }
+        cardDealer.DealCommunityCards(communityCardList, communityCardsHolder, num);
         UpdateGuidebook();
         UpdateButtonStates();
         Invoke(nameof(AIBehavior), delay);
     }
-
 
     // ============================= showdown =============================
 
