@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Linq;
 using TMPro;
 using UnityEditor.Experimental.GraphView;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
@@ -17,11 +18,13 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI stateText;
     //public TextMeshProUGUI currentHandText;     //text display for Check Hand button
     public GuidebookUI guidebookUI;             //reference to your guidebook panel
+    public Transform[] playerTransforms;
+    public Transform bettorButton;
 
     // --- Auto Play (opponent only) ---
     [Header("Auto Play")]
     public bool autoPlay = false;                 // current state
-    public float delay = 0.6f;                // delay between auto decisions
+    public float delay = 0.5f;                // delay between auto decisions
     public TextMeshProUGUI autoPlayButtonText;    // drag the Button's TMP text here
 
 
@@ -39,6 +42,9 @@ public class GameManager : MonoBehaviour
     // managers
     private BettingManager bettingManager;
     private DeckManager deckManager;
+
+    // etc
+    public bool isAnimating = false;
 
     public static GameManager Instance { get; private set; }
     private GameState currentState = GameState.PreFlop;
@@ -116,7 +122,7 @@ public class GameManager : MonoBehaviour
 
     private void AIBehavior()
     {
-        if (autoPlay && IsPlayerTurn(opponent) && currentState != GameState.Showdown)
+        if (autoPlay && IsPlayerTurn(opponent) && currentState != GameState.Showdown && !isAnimating)
         {
             bool tryRaise = !opponent.HasAllIn && !player.HasAllIn && Random.value < 0.5f;
             bool tryFold = !opponent.HasAllIn && !player.HasAllIn && Random.value < 0.2f;
@@ -129,7 +135,7 @@ public class GameManager : MonoBehaviour
     private void StartNewRound()
     {
         deckManager.Shuffle();
-        DealHoleCards();
+        StartCoroutine(DealHoleCards());
         ResetAllPlayerStatus(true); // if the argument is true, reset player.HasAllIn as well
         bettingManager.PostBlind(players, dealerIndex);
         bettorIndex = (dealerIndex + 3) % players.Count;
@@ -137,6 +143,7 @@ public class GameManager : MonoBehaviour
         UpdateMoneyUI();
         UpdateButtonStates();
         Invoke(nameof(AIBehavior), delay);
+        StartCoroutine(MoveBettorButton(playerTransforms[bettorIndex]));
     }
     // ============================= Update UIs =============================
     private void UpdateMoneyUI()
@@ -179,7 +186,6 @@ public class GameManager : MonoBehaviour
     public void PlayerRaiseButton() => HandleRaise(player, opponent);
     public void PlayerFoldButton() => HandleFold(player, playerCardsHolder);
 
-    // ============================= /buttons =============================
 
 
     // ============================= button functions =============================
@@ -233,8 +239,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // ============================= /button functions =============================
-
     // ============================= flow logics =============================
 
     public void NextPhase()
@@ -275,6 +279,22 @@ public class GameManager : MonoBehaviour
         } while (players[bettorIndex].HasFolded);
     }
 
+    IEnumerator MoveBettorButton(Transform targetPosition)
+    {
+        float duration = 0.3f;
+        float elapsed = 0;
+        Vector3 startPos = bettorButton.position;
+
+        while (elapsed < duration)
+        {
+            bettorButton.position = Vector3.Lerp(startPos, targetPosition.position, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        bettorButton.position = targetPosition.position;
+    }
+
     // check whether it is player's turn
     private bool IsPlayerTurn(Player player)
     {
@@ -297,9 +317,9 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
+    // when only one player.HasFolded is false, return the player. else, return null
     private Player GetSoleRemainingPlayer()
     {
-        // when only one player.HasFolded is false, return the player. else, return null
         var activePlayers = players.Where(p => !p.HasFolded).ToList();
         return activePlayers.Count == 1 ? activePlayers[0] : null;
     }
@@ -320,10 +340,16 @@ public class GameManager : MonoBehaviour
         UpdateButtonStates();
         NextPhase();
         Invoke(nameof(AIBehavior), delay);
+        StartCoroutine(MoveBettorButton(playerTransforms[bettorIndex]));
 
     }
-    // ============================= /flow logics =============================
 
+    private void UpdateWaited()
+    {
+
+    }
+
+    // ============================= handle cards =============================
     void ClearAllCardHolders()
     {
         // cards in holders go back to deck (copy the list elements from hole to deck)
@@ -343,28 +369,38 @@ public class GameManager : MonoBehaviour
         communityCardList.Clear();
     }
 
-    void DealHoleCards()
+
+    IEnumerator DealHoleCards()
     {
+        // to prevent player from pressing button while animating
+        isAnimating = true;
+        UpdateButtonStates();
+        
         for (int i = 0; i < 2; i++)
         {
             // player
             CardData playerCard = deckManager.DrawCard();
             player.HoleCards.Add(playerCard);
             uiManager.DisplayCard(playerCard, playerCardsHolder);
+            yield return new WaitForSeconds(delay);
 
             // opponent
             CardData opponentCard = deckManager.DrawCard();
             opponent.HoleCards.Add(opponentCard);
             uiManager.DisplayCard(opponentCard, opponentCardsHolder);
-
+            yield return new WaitForSeconds(delay);
 
         }
 
-        UpdateGuidebook(); //UpdateGuidebook
+        isAnimating = false;
+        UpdateGuidebook();
+        UpdateButtonStates();
+        Invoke(nameof(AIBehavior), delay);
     }
 
     void DealCommunityCards(int num)
     {
+        UpdateButtonStates();
         if (communityCardList.Count >= 5)
         {
             return;
@@ -377,6 +413,8 @@ public class GameManager : MonoBehaviour
             uiManager.DisplayCard(card, communityCardsHolder);
         }
         UpdateGuidebook();
+        UpdateButtonStates();
+        Invoke(nameof(AIBehavior), delay);
     }
 
 
@@ -424,5 +462,4 @@ public class GameManager : MonoBehaviour
         UpdateMoneyUI();
         UpdateGuidebook();
     }
-    // ============================= showdown =============================
 }

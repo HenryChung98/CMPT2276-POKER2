@@ -2,9 +2,12 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using System.Collections;
 
 public class UIManager : MonoBehaviour
 {
+    public GameManager gameManager;
+    
     [Header("UI Elements")]
     public TextMeshProUGUI potText;
     public TextMeshProUGUI playerBankText;
@@ -32,10 +35,13 @@ public class UIManager : MonoBehaviour
 
     public void DisplayCard(CardData cardData, Transform holder, bool faceDown = false)
     {
-        GameObject cardObject = Instantiate(cardPrefab, holder);
+        // cards go from deck to holder
+        GameObject cardObject = Instantiate(cardPrefab, deckTransform);
         var ui = cardObject.GetComponent<CardUI>();
         ui.cardBackSprite = cardBackSprite;
         ui.Setup(cardData, faceDown);
+
+        StartCoroutine(MoveCardToHolder(cardObject, holder));
     }
 
     public void ClearCardHolder(Transform holder)
@@ -70,9 +76,9 @@ public class UIManager : MonoBehaviour
         }
 
         if (activePlayerIndex == 0) {
-            callButton.interactable = true;
-            raiseButton.interactable = true && !anyoneAllIn;
-            foldButton.interactable = true && !anyoneAllIn;
+            callButton.interactable = true && !gameManager.isAnimating;
+            raiseButton.interactable = true && !gameManager.isAnimating && !anyoneAllIn;
+            foldButton.interactable = true && !gameManager.isAnimating && !anyoneAllIn;
         }
         else {
             callButton.interactable = false;
@@ -83,6 +89,30 @@ public class UIManager : MonoBehaviour
         restartButton.interactable = false;
     }
 
+    // animation - move card from deck to holder
+    private IEnumerator MoveCardToHolder(GameObject card, Transform holder)
+    {
+        Vector3 startPos = card.transform.position;
 
+        card.transform.SetParent(holder);
+        Canvas.ForceUpdateCanvases();
+        yield return null; // Layout Group needs time to calculate (wait 1 frame)
 
+        Vector3 endPos = card.transform.position;
+        card.transform.position = startPos;
+
+        float duration = 0.5f;
+        float elapsed = 0f;
+
+        // animation
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            card.transform.position = Vector3.Lerp(startPos, endPos, t);
+            yield return null;
+        }
+
+        card.transform.position = endPos;
+    }
 }
