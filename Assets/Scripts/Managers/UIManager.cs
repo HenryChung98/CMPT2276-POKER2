@@ -21,7 +21,6 @@ public class UIManager : MonoBehaviour
     public Button callButton;
     public Button raiseButton;
     public Button foldButton;
-    public Button restartButton;
 
     [Header("Transforms")]
     public Transform deckTransform;
@@ -54,7 +53,6 @@ public class UIManager : MonoBehaviour
 
     public void RevealCards(Transform holder)
     {
-        restartButton.interactable = true;
         for (int i = 0; i < holder.childCount; i++)
         {
             var ui = holder.GetChild(i).GetComponent<CardUI>();
@@ -85,8 +83,6 @@ public class UIManager : MonoBehaviour
             raiseButton.interactable = false;
             foldButton.interactable = false;
         }
-
-        restartButton.interactable = false;
     }
 
     // animation - move card from deck to holder

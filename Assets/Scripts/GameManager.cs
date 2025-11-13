@@ -240,7 +240,6 @@ public class GameManager : MonoBehaviour
             uiManager.UpdateButtonStates(-1, players);
             bettingManager.PayoutChips(winner, bettingManager.Pot);
             UpdateMoneyUI();
-            uiManager.restartButton.interactable = true;
             gameFlowManager.currentState = GameState.Showdown;
             gameFlowManager.ShowGameOverPanel();
             Debug.Log("game ended by fold");
@@ -337,6 +336,7 @@ public class GameManager : MonoBehaviour
 
         UpdateMoneyUI();
         UpdateGuidebook();
+        gameFlowManager.ShowGameOverPanel();
     }
 
 }
