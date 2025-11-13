@@ -281,7 +281,7 @@ public static class PokerHandEvaluator
             {
                 //Need this one for a very specific scenario. Will decide later to ignore the logic.
                 var kIckers = cards
-               .Where(c => c.rank != pair.Rank)
+               .Where(c => c.rank != twoPair.Rank)
                .Select(c => c.rank)
                .Distinct()
                .OrderByDescending(r => (int)r)
@@ -295,7 +295,7 @@ public static class PokerHandEvaluator
                     Tiebreakers = new List<Rank> { pair.Rank }.Concat(new List<Rank> { twoPair.Rank }).Concat(kIckers).ToList(),
                     Description = desC,
 
-                    highlightedRank = new List<Rank> { twoPair.Rank },
+                    highlightedRank = new List<Rank> { pair.Rank, twoPair.Rank },
                     highlightedKickers = kIckers,
                 };
             }

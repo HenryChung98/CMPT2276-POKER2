@@ -22,10 +22,6 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI raiseAmountText;
 
 
-    [Header("test")]
-    public GameObject cardPrefab;
-    public Transform cardTrans;
-
     // --- Auto Play (opponent only) ---
     [Header("Auto Play")]
     public bool autoPlay = true;                 // current state
@@ -72,22 +68,8 @@ public class GameManager : MonoBehaviour
 
     public void CheckPlayerHand()
     {
-        // im on testing
-        var allCards = GetAllCards(player.HoleCards);
-        var res = PokerHandEvaluator.EvaluateBestHand(allCards);
+        var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
         Debug.Log($"You currently have: {res.Description}");
-
-        foreach (Transform child in cardTrans)
-        {
-            Destroy(child.gameObject);
-        }
-
-        foreach (var cardData in allCards)
-        {
-            GameObject cardObject = Instantiate(cardPrefab, cardTrans);
-            var ui = cardObject.GetComponent<CardUI>();
-            ui.Setup(cardData);
-        }
 
         UpdateGuidebook();
     }
@@ -366,6 +348,7 @@ public class GameManager : MonoBehaviour
             bettingManager.PayoutChips(player, bettingManager.Pot);
 
             uiManager.HighlightHand(player, playerResult);
+            
         }
         else if (cmp < 0)
         {

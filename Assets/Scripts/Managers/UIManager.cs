@@ -155,8 +155,10 @@ public class UIManager : MonoBehaviour
         foreach (var cardUI in hand)
         {
             if (cardUI.cardData == null)
+            {
+                Debug.Log("cardData is null");
                 continue;
-
+            }                
             // Check if card is part of the main hand (green)
             bool isMainHand = result.highlightedRank != null &&
                               result.highlightedRank.Contains(cardUI.cardData.rank);

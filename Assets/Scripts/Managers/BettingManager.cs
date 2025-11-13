@@ -17,11 +17,9 @@ public class BettingManager
 
         players[smallBlinder].BetThisRound = players[smallBlinder].Bet(smallBlind); 
         pot += players[smallBlinder].BetThisRound;
-        Debug.Log($"{players[smallBlinder].Name}(dealer) post small blind");
 
         players[bigBlinder].BetThisRound = players[bigBlinder].Bet(bigBlind);
         pot += players[bigBlinder].BetThisRound;
-        Debug.Log($"{players[bigBlinder].Name} post big blind");
 
         players[bigBlinder].HasActed = true;
     }

@@ -34,7 +34,6 @@ public class Player
         int actualBet = Mathf.Min(amount, Chips); 
         Chips -= actualBet;
         BetThisRound += actualBet;
-        Debug.Log($"{this.Name} bet {BetThisRound} this round");
         if (this.Chips <= 0)
         {
             this.HasAllIn = true;

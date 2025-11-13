@@ -26,7 +26,7 @@ public class CardDealer : MonoBehaviour
 
             CardData opponentCard = deckManager.DrawCard();
             opponent.HoleCards.Add(opponentCard);
-            uiManager.DisplayCard(opponentCard, opponentHolder, true);
+            uiManager.DisplayCard(opponentCard, opponentHolder);
             yield return new WaitForSeconds(delay);
         }
     }
