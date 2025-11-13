@@ -35,8 +35,8 @@ public class UIManager : MonoBehaviour
     public void UpdateMoneyUI(int pot, int playerChips, int opponentChips)
     {
         if (potText != null) potText.text = $"Pot: {pot}";
-        if (playerBankText != null) playerBankText.text = $"You: {playerChips}";
-        if (oppBankText != null) oppBankText.text = $"Opponent: {opponentChips}";
+        if (playerBankText != null) playerBankText.text = $"{playerChips}";
+        if (oppBankText != null) oppBankText.text = $"{opponentChips}";
     }
 
     public void DisplayCard(CardData cardData, Transform holder, bool faceDown = false) // One more argument(Player player = null)

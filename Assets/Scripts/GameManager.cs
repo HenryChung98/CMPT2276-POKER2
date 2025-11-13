@@ -16,7 +16,11 @@ public class GameManager : MonoBehaviour
     [Header("UI")]
     public Sprite[] cardSprites;
     public UIManager uiManager;
-    public GuidebookUI guidebookUI;             //reference to your guidebook panel
+    public GuidebookUI guidebookUI;
+    public TextMeshProUGUI callButtonText;
+    public TextMeshProUGUI callAmountText;
+    public TextMeshProUGUI raiseAmountText;
+
 
     [Header("test")]
     public GameObject cardPrefab;
@@ -155,6 +159,7 @@ public class GameManager : MonoBehaviour
 
         // update UIs
         UpdateMoneyUI();
+        UpdateGuidebook();
         UpdateButtonStates();
         Invoke(nameof(AIBehavior), delay);
     }
@@ -265,6 +270,11 @@ public class GameManager : MonoBehaviour
         UpdateMoneyUI();
         UpdateButtonStates();
         Invoke(nameof(AIBehavior), delay);
+
+        int callAmount = Mathf.Max(0, opponent.BetThisRound - player.BetThisRound);
+        callButtonText.text = callAmount == 0 ? "Check" : "Call";
+        callAmountText.text = $"{callAmount}";
+        raiseAmountText.text = $"{opponent.BetThisRound + Mathf.Max(bettingManager.bigBlind, opponent.BetThisRound)}";
     }
 
 
