@@ -10,6 +10,9 @@ public static class PokerHandEvaluator
         public HandRank Rank;
         public List<Rank> Tiebreakers; // ordered high��low for comparisons
         public string Description;
+
+        public List<Rank> highlightedRank;
+        public List<Rank> highlightedKickers;
     }
 
     public static HandResult EvaluateBestHand(List<CardData> cards)
@@ -22,51 +25,7 @@ public static class PokerHandEvaluator
             .ThenByDescending(g => (int)g.Rank)
             .ToList();
 
-        // ONE PAIR?
-        var pair = rankGroups.FirstOrDefault(g => g.Count == 2);
-        if (pair != null)
-        {
-            // Two pairs
-            var twoPair = rankGroups.FirstOrDefault(f => f.Count == 2 && f.Rank != pair.Rank);
-            if (twoPair != null)
-            {
-                //Need this one for a very specific scenario. Will decide later to ignore the logic.
-                var kIckers = cards
-               .Where(c => c.rank != pair.Rank)
-               .Select(c => c.rank)
-               .Distinct()
-               .OrderByDescending(r => (int)r)
-               .Take(1)
-               .ToList();
-
-                var desC = $"Two Pairs ({pair.Rank}) with another pair ({twoPair.Rank}) and kickers {string.Join(", ", kIckers)}";
-                return new HandResult
-                {
-                    Rank = HandRank.TwoPair,
-                    Tiebreakers = new List<Rank> { pair.Rank }.Concat(new List<Rank> { twoPair.Rank }).Concat(kIckers).ToList(),
-                    //Tiebreakers = new List<Rank> { pair.Rank }.Concat(new List<Rank> { twoPair.Rank }).ToList(),
-                    Description = desC
-                };
-            }
-
-            // pair rank first, then best three kickers
-            var kickers = cards
-                .Where(c => c.rank != pair.Rank)
-                .Select(c => c.rank)
-                .Distinct()
-                .OrderByDescending(r => (int)r)
-                .Take(3)
-                .ToList();
-
-            var desc = $"One Pair ({pair.Rank}s) with kickers {string.Join(", ", kickers)}";
-            return new HandResult
-            {
-                Rank = HandRank.OnePair,
-                Tiebreakers = new List<Rank> { pair.Rank }.Concat(kickers).ToList(),
-                Description = desc
-            };
-        }
-
+        
         // Four of a Kind
         var fourofaKind = rankGroups.FirstOrDefault(g => g.Count == 4);
         if (fourofaKind != null)
@@ -85,7 +44,11 @@ public static class PokerHandEvaluator
             {
                 Rank = HandRank.FourOfAKind,
                 Tiebreakers = new List<Rank> { fourofaKind.Rank }.Concat(kickers).ToList(),
-                Description = desc
+                Description = desc,
+
+                highlightedRank = new List<Rank> { fourofaKind.Rank },
+                highlightedKickers = kickers.ToList(),
+
             };
         }
 
@@ -103,7 +66,10 @@ public static class PokerHandEvaluator
                     Rank = HandRank.FullHouse,
                     Tiebreakers = new List<Rank> { threeofaKind.Rank }
                     .Concat(new List<Rank> { aPairforFullHouse.Rank }).ToList(),
-                    Description = desC
+                    Description = desC,
+
+                    highlightedRank = new List<Rank> { threeofaKind.Rank, aPairforFullHouse.Rank },
+                    highlightedKickers = null,
                 };
             }
 
@@ -120,7 +86,11 @@ public static class PokerHandEvaluator
             {
                 Rank = HandRank.ThreeOfAKind,
                 Tiebreakers = new List<Rank> { threeofaKind.Rank }.Concat(kickers).ToList(),
-                Description = desc
+                Description = desc,
+
+
+                highlightedRank = new List<Rank> { threeofaKind.Rank },
+                highlightedKickers = kickers,
             };
         }
         
@@ -158,6 +128,12 @@ public static class PokerHandEvaluator
                 var highestCard = (Rank)highest;
                 var lowestCard = (Rank)lowest;
 
+                var straightRanks = uniqueCards
+                    .Skip(i)
+                    .Take(5)
+                    .Select(r => (Rank)r)
+                    .ToList();
+
                 var desc = $"Straight ({lowestCard}s) up to {highestCard}";
 
                 return new HandResult
@@ -169,7 +145,10 @@ public static class PokerHandEvaluator
                         .OrderByDescending(r => r)
                         .Select(r => (Rank)r)
                         .ToList(),
-                    Description = desc
+                    Description = desc,
+
+                   highlightedRank = straightRanks,
+                   highlightedKickers = null,
                 };
             }
         }
@@ -220,6 +199,12 @@ public static class PokerHandEvaluator
                     //Royal Flush
                     if (highest == 14 && lowest == 10)
                     {
+                        var royalFlushCards = flushCards
+                            .Skip(i)
+                            .Take(5)
+                            .Select(r => (Rank)r)
+                            .ToList();
+
                         var deSC = $"Royal Flush ({isFlush.Suit}s)";
                         return new HandResult
                         {
@@ -230,11 +215,20 @@ public static class PokerHandEvaluator
                                 .OrderByDescending(r => r)
                                 .Select(r => (Rank)r)
                                 .ToList(),
-                            Description = deSC
+                            Description = deSC,
+
+                            highlightedRank = royalFlushCards, 
+                            highlightedKickers = null,
                         };
                     }
 
                     // Straight Flush
+                    var straightFlushCards = flushCards
+                        .Skip(i)
+                        .Take(5)
+                        .Select(r => (Rank)r)
+                        .ToList();
+
                     var desC = $"Straight Flush({isFlush.Suit}s) up to {highest}";
                     return new HandResult
                     {
@@ -245,12 +239,21 @@ public static class PokerHandEvaluator
                             .OrderByDescending(r => r)
                             .Select(r => (Rank)r)
                             .ToList(),
-                        Description = desC
+                        Description = desC,
+
+                        highlightedRank = straightFlushCards, 
+                        highlightedKickers = null,
                     };
                 }
             }
 
             // Flush
+            var flushRanks = flushCards
+                .OrderByDescending(r => r)
+                .Take(5)
+                .Select(r => (Rank)r)
+                .ToList();
+
             var desc = $"Flush ({isFlush.Suit}s)";
             return new HandResult
             {
@@ -260,11 +263,64 @@ public static class PokerHandEvaluator
                     .Take(5)
                     .Select(r => (Rank)r) 
                     .ToList(),
-                Description = desc
+                Description = desc,
+
+                highlightedRank = flushRanks,
+                highlightedKickers = null,
             };
 
         }
-        
+
+        // ONE PAIR?
+        var pair = rankGroups.FirstOrDefault(g => g.Count == 2);
+        if (pair != null)
+        {
+            // Two pairs
+            var twoPair = rankGroups.FirstOrDefault(f => f.Count == 2 && f.Rank != pair.Rank);
+            if (twoPair != null)
+            {
+                //Need this one for a very specific scenario. Will decide later to ignore the logic.
+                var kIckers = cards
+               .Where(c => c.rank != pair.Rank)
+               .Select(c => c.rank)
+               .Distinct()
+               .OrderByDescending(r => (int)r)
+               .Take(1)
+               .ToList();
+
+                var desC = $"Two Pairs ({pair.Rank}) with another pair ({twoPair.Rank}) and kickers {string.Join(", ", kIckers)}";
+                return new HandResult
+                {
+                    Rank = HandRank.TwoPair,
+                    Tiebreakers = new List<Rank> { pair.Rank }.Concat(new List<Rank> { twoPair.Rank }).Concat(kIckers).ToList(),
+                    Description = desC,
+
+                    highlightedRank = new List<Rank> { twoPair.Rank },
+                    highlightedKickers = kIckers,
+                };
+            }
+
+            // pair rank first, then best three kickers
+            var kickers = cards
+                .Where(c => c.rank != pair.Rank)
+                .Select(c => c.rank)
+                .Distinct()
+                .OrderByDescending(r => (int)r)
+                .Take(3)
+                .ToList();
+
+            var desc = $"One Pair ({pair.Rank}s) with kickers {string.Join(", ", kickers)}";
+            return new HandResult
+            {
+                Rank = HandRank.OnePair,
+                Tiebreakers = new List<Rank> { pair.Rank }.Concat(kickers).ToList(),
+                Description = desc,
+
+                highlightedRank = new List<Rank> { pair.Rank },
+                highlightedKickers = kickers,
+            };
+        }
+
         // HIGH CARD: take top five ranks
         if (pair == null)
         {
@@ -281,11 +337,13 @@ public static class PokerHandEvaluator
             {
                 Rank = HandRank.HighCard,
                 Tiebreakers = topFive,
-                Description = highDesc
+                Description = highDesc,
+                highlightedRank = new List<Rank> { topFive.First() }, // Highest card green
+                highlightedKickers = topFive.Skip(1).ToList(), // Rest yellow
             };
         }
 
-        return new HandResult { }; // this will never get execute but need this for compilation sake.
+        return new HandResult { }; // this will never get executed but need this for compilation sake.
 
     }
 
@@ -305,3 +363,5 @@ public static class PokerHandEvaluator
 }
 
 
+// Might need another variable for tiebreaker before concatenation
+// If both get the same rank, compare the kickers. (done)

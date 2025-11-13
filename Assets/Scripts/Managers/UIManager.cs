@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Collections;
+using Unity.VisualScripting;
 
 public class UIManager : MonoBehaviour
 {
@@ -25,6 +26,12 @@ public class UIManager : MonoBehaviour
     [Header("Transforms")]
     public Transform deckTransform;
 
+    [Header("Player & Opponent Cards")]
+    public List<CardUI> playerCards = new List<CardUI>();
+    public List<CardUI> opponentCards = new List<CardUI>();
+
+
+
     public void UpdateMoneyUI(int pot, int playerChips, int opponentChips)
     {
         if (potText != null) potText.text = $"Pot: {pot}";
@@ -32,13 +39,19 @@ public class UIManager : MonoBehaviour
         if (oppBankText != null) oppBankText.text = $"Opponent: {opponentChips}";
     }
 
-    public void DisplayCard(CardData cardData, Transform holder, bool faceDown = false)
+    public void DisplayCard(CardData cardData, Transform holder, bool faceDown = false) // One more argument(Player player = null)
     {
         // cards go from deck to holder
         GameObject cardObject = Instantiate(cardPrefab, deckTransform);
         var ui = cardObject.GetComponent<CardUI>();
         ui.cardBackSprite = cardBackSprite;
         ui.Setup(cardData, faceDown);
+
+        /*
+        if (player != null)
+        {
+            RegisterCard(player, ui);
+        }*/
 
         StartCoroutine(MoveCardToHolder(cardObject, holder));
     }
@@ -111,4 +124,63 @@ public class UIManager : MonoBehaviour
 
         card.transform.position = endPos;
     }
+
+
+
+
+    public void RegisterCard(Player player, CardUI cardUI)
+    {
+        if (player.IsHuman)
+            playerCards.Add(cardUI);
+        else
+            opponentCards.Add(cardUI);
+    }
+
+
+    public void ClearAllHighlight()
+    {
+        foreach (var card in playerCards)
+            card.Highlight(false);
+
+        foreach (var card in opponentCards)
+            card.Highlight(false);
+    }
+
+    public void HighlightHand(Player player, PokerHandEvaluator.HandResult result)
+    {
+        List<CardUI> hand = player.IsHuman ? playerCards : opponentCards;
+        if (hand == null || result == null)
+            return;
+
+        foreach (var cardUI in hand)
+        {
+            if (cardUI.cardData == null)
+                continue;
+
+            // Check if card is part of the main hand (green)
+            bool isMainHand = result.highlightedRank != null &&
+                              result.highlightedRank.Contains(cardUI.cardData.rank);
+
+            // Check if card is a kicker (yellow)
+            bool isKicker = result.highlightedKickers != null &&
+                            result.highlightedKickers.Contains(cardUI.cardData.rank);
+
+            if (isMainHand)
+            {
+                cardUI.Highlight(true, Color.green);
+            }
+
+            else if (isKicker)
+            {
+                cardUI.Highlight(true, Color.yellow);
+            }
+
+            else
+            {
+                cardUI.Highlight(false);
+            }
+        }
+    }
+
+
 }

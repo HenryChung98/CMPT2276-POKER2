@@ -279,6 +279,9 @@ public class GameManager : MonoBehaviour
         isAnimating = true;
         UpdateButtonStates();
 
+        //uiManager.playerCards.Clear();
+        //uiManager.opponentCards.Clear();
+
         yield return StartCoroutine(cardDealer.DealHoleCards(player, playerCardsHolder, opponent, opponentCardsHolder));
 
         isAnimating = false;
@@ -311,22 +314,56 @@ public class GameManager : MonoBehaviour
         uiManager.UpdateButtonStates(-1, players);
         uiManager.RevealCards(opponentCardsHolder);
 
+        
+        uiManager.playerCards.Clear();
+        uiManager.opponentCards.Clear();
+
+        foreach (Transform child in playerCardsHolder)
+        {
+            var cardUI = child.GetComponent<CardUI>();
+            if (cardUI != null)
+                uiManager.playerCards.Add(cardUI);
+        }
+
+        foreach (Transform child in opponentCardsHolder)
+        {
+            var cardUI = child.GetComponent<CardUI>();
+            if (cardUI != null)
+                uiManager.opponentCards.Add(cardUI);
+        }
+
+        foreach (Transform child in communityCardsHolder)
+        {
+            var cardUI = child.GetComponent<CardUI>();
+            if (cardUI != null)
+            {
+                uiManager.playerCards.Add(cardUI);    
+                uiManager.opponentCards.Add(cardUI);    
+            }
+        }
+
         var playerResult = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
         var opponentResult = PokerHandEvaluator.EvaluateBestHand(GetAllCards(opponent.HoleCards));
 
         int cmp = PokerHandEvaluator.Compare(playerResult, opponentResult);
+
+        uiManager.ClearAllHighlight();
 
         if (cmp > 0)
         {
             gameFlowManager.resultText.text = "You win";
             Debug.Log($"You win! {playerResult.Description} beats {opponentResult.Description}. +{bettingManager.Pot} chips.");
             bettingManager.PayoutChips(player, bettingManager.Pot);
+
+            uiManager.HighlightHand(player, playerResult);
         }
         else if (cmp < 0)
         {
             gameFlowManager.resultText.text = "Opponent win";
             Debug.Log($"Opponent wins. {opponentResult.Description} beats {playerResult.Description}.");
             bettingManager.PayoutChips(opponent, bettingManager.Pot);
+
+            uiManager.HighlightHand(opponent, opponentResult);
         }
         else
         {
@@ -335,6 +372,9 @@ public class GameManager : MonoBehaviour
             int split = bettingManager.Pot / 2;
             bettingManager.PayoutChips(player, split);
             bettingManager.PayoutChips(opponent, bettingManager.Pot - split);
+
+            uiManager.HighlightHand(player, playerResult);
+            uiManager.HighlightHand(opponent, opponentResult);
         }
 
         UpdateMoneyUI();
