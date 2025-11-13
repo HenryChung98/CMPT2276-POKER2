@@ -1,37 +1,33 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class GameFlowManager : MonoBehaviour
 {
     private GameManager gameManager;
-    private BettingManager bettingManager;
-    private CardDealer cardDealer;
-    private UIManager uiManager;
 
     private List<Player> players;
-    private List<CardData> communityCardList;
-    private List<CardData> foldedCards;
 
     private int dealerIndex = 0;
     private int bettorIndex = 0;
+    private BettingManager bettingManager;
+    private DeckManager deckManager;
     public GameState currentState = GameState.PreFlop;
 
     public Transform[] playerTransforms;
     public Transform bettorButton;
     public float delay = 0.5f;
     public GameObject gameOverPanel;
+    public TextMeshProUGUI resultText;
 
-    public void Initialize(GameManager gm, BettingManager bm, CardDealer cd, UIManager um,
-                          List<Player> playerList, List<CardData> communityCards, List<CardData> folded)
+    public void Initialize(GameManager gm, BettingManager bm, DeckManager dm, List<Player> playerList)
     {
         gameManager = gm;
         bettingManager = bm;
-        cardDealer = cd;
-        uiManager = um;
+        deckManager = dm;
         players = playerList;
-        communityCardList = communityCards;
-        foldedCards = folded;
+
     }
 
     public int DealerIndex => dealerIndex;
@@ -40,6 +36,10 @@ public class GameFlowManager : MonoBehaviour
 
     public void StartNewRound()
     {
+        deckManager.Shuffle();
+        ResetAllPlayerStatus(true);
+        bettingManager.PostBlind(players, DealerIndex);
+
         gameOverPanel.SetActive(false);
         currentState = GameState.PreFlop;
         bettorIndex = (dealerIndex + 3) % players.Count;

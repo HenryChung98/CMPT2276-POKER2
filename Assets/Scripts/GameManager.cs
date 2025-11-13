@@ -4,6 +4,7 @@ using System.Linq;
 using TMPro;
 using UnityEditor.Experimental.GraphView;
 using System.Collections;
+using static UnityEditor.U2D.ScriptablePacker;
 
 public class GameManager : MonoBehaviour
 {
@@ -15,9 +16,11 @@ public class GameManager : MonoBehaviour
     [Header("UI")]
     public Sprite[] cardSprites;
     public UIManager uiManager;
-    public TextMeshProUGUI stateText;
     public GuidebookUI guidebookUI;             //reference to your guidebook panel
 
+    [Header("test")]
+    public GameObject cardPrefab;
+    public Transform cardTrans;
 
     // --- Auto Play (opponent only) ---
     [Header("Auto Play")]
@@ -65,8 +68,22 @@ public class GameManager : MonoBehaviour
 
     public void CheckPlayerHand()
     {
-        var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
+        // im on testing
+        var allCards = GetAllCards(player.HoleCards);
+        var res = PokerHandEvaluator.EvaluateBestHand(allCards);
         Debug.Log($"You currently have: {res.Description}");
+
+        foreach (Transform child in cardTrans)
+        {
+            Destroy(child.gameObject);
+        }
+
+        foreach (var cardData in allCards)
+        {
+            GameObject cardObject = Instantiate(cardPrefab, cardTrans);
+            var ui = cardObject.GetComponent<CardUI>();
+            ui.Setup(cardData);
+        }
 
         UpdateGuidebook();
     }
@@ -74,12 +91,6 @@ public class GameManager : MonoBehaviour
     {
         var res = PokerHandEvaluator.EvaluateBestHand(GetAllCards(opponent.HoleCards));
         Debug.Log($"opponent currently have: {res.Description}");
-    }
-
-
-    private void UpdateStateMessage(string msg)
-    {
-        stateText.text = msg;
     }
 
     public void OpponentCallButton() => HandleCall(opponent, player);
@@ -119,7 +130,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        gameFlowManager.Initialize(this, bettingManager, cardDealer, uiManager, players, communityCardList, foldedCards);
+        gameFlowManager.Initialize(this, bettingManager, deckManager, players);
         autoPlay = true;
         StartNewRound();
         UpdateAutoPlayUI();
@@ -139,13 +150,7 @@ public class GameManager : MonoBehaviour
 
     private void StartNewRound()
     {
-        // update cards
-        deckManager.Shuffle();
         StartCoroutine(DealHoleCards());
-
-        // update status and post blinds
-        gameFlowManager.ResetAllPlayerStatus(true);
-        bettingManager.PostBlind(players, gameFlowManager.DealerIndex);
         gameFlowManager.StartNewRound();
 
         // update UIs
@@ -165,7 +170,6 @@ public class GameManager : MonoBehaviour
     {
         uiManager.UpdateButtonStates(gameFlowManager.BettorIndex, players);
     }
-    // ============================= /Update UIs =============================
 
     public List<CardData> GetPlayerAllCardsForUI()
     {
@@ -186,7 +190,6 @@ public class GameManager : MonoBehaviour
     {
         gameFlowManager.IncrementDealer();
         ClearAllCardHolders();
-        UpdateStateMessage("");
         StartNewRound();
     }
 
@@ -242,7 +245,7 @@ public class GameManager : MonoBehaviour
             UpdateMoneyUI();
             gameFlowManager.currentState = GameState.Showdown;
             gameFlowManager.ShowGameOverPanel();
-            Debug.Log("game ended by fold");
+            gameFlowManager.resultText.text = folder == opponent ? "You Win" : "Opponent Win";
             return;
         }
 
@@ -315,19 +318,19 @@ public class GameManager : MonoBehaviour
 
         if (cmp > 0)
         {
-            UpdateStateMessage("You win");
+            gameFlowManager.resultText.text = "You win";
             Debug.Log($"You win! {playerResult.Description} beats {opponentResult.Description}. +{bettingManager.Pot} chips.");
             bettingManager.PayoutChips(player, bettingManager.Pot);
         }
         else if (cmp < 0)
         {
-            UpdateStateMessage("Opponent win");
+            gameFlowManager.resultText.text = "Opponent win";
             Debug.Log($"Opponent wins. {opponentResult.Description} beats {playerResult.Description}.");
             bettingManager.PayoutChips(opponent, bettingManager.Pot);
         }
         else
         {
-            UpdateStateMessage("Tie");
+            gameFlowManager.resultText.text = "Tie";
             Debug.Log($"Tie: {playerResult.Description} vs {opponentResult.Description}. Pot split.");
             int split = bettingManager.Pot / 2;
             bettingManager.PayoutChips(player, split);
