@@ -15,7 +15,7 @@ public class GameFlowManager : MonoBehaviour
 
     private int dealerIndex = 0;
     private int bettorIndex = 0;
-    private GameState currentState = GameState.PreFlop;
+    public GameState currentState = GameState.PreFlop;
 
     public Transform[] playerTransforms;
     public Transform bettorButton;
@@ -70,9 +70,6 @@ public class GameFlowManager : MonoBehaviour
             case GameState.River:
                 gameManager.Showdown();
                 currentState = GameState.Showdown;
-                return;
-            case GameState.Showdown:
-                gameManager.Invoke(nameof(ShowGameOverPanel), 1f);
                 return;
         }
         ResetAllPlayerStatus();
@@ -142,7 +139,7 @@ public class GameFlowManager : MonoBehaviour
 
         bettorButton.position = targetPosition.position;
     }
-    void ShowGameOverPanel()
+    public void ShowGameOverPanel()
     {
         gameOverPanel.SetActive(true);
     }

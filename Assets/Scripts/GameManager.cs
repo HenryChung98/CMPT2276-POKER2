@@ -46,7 +46,6 @@ public class GameManager : MonoBehaviour
     public bool isAnimating = false;
 
     public static GameManager Instance { get; private set; }
-    private GameState currentState = GameState.PreFlop;
 
 
     // ============================ These are for debugging. we won't need these in the end ============================
@@ -128,7 +127,7 @@ public class GameManager : MonoBehaviour
 
     private void AIBehavior()
     {
-        if (autoPlay && gameFlowManager.IsPlayerTurn(opponent) && currentState != GameState.Showdown && !isAnimating)
+        if (autoPlay && gameFlowManager.IsPlayerTurn(opponent) && gameFlowManager.currentState != GameState.Showdown && !isAnimating)
         {
             bool tryRaise = !opponent.HasAllIn && !player.HasAllIn && Random.value < 0.5f;
             bool tryFold = !opponent.HasAllIn && !player.HasAllIn && Random.value < 0.2f;
@@ -242,11 +241,12 @@ public class GameManager : MonoBehaviour
             bettingManager.PayoutChips(winner, bettingManager.Pot);
             UpdateMoneyUI();
             uiManager.restartButton.interactable = true;
-            currentState = GameState.Showdown;
+            gameFlowManager.currentState = GameState.Showdown;
+            gameFlowManager.ShowGameOverPanel();
             Debug.Log("game ended by fold");
             return;
         }
-        AdvanceTurn();
+
     }
 
     // when only one player.HasFolded is false, return the player. else, return null
