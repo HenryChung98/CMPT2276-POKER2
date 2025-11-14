@@ -318,6 +318,41 @@ public class GameManager : MonoBehaviour
         return allCards;
     }
 
+    // Spades > Hearts > Diamonds > Clubs
+    private int CompareBySuit(List<CardData> playerCards, List<CardData> opponentCards)
+    {
+        // Sort by rank high -> low, then by suit high -> low
+        var playerSorted = playerCards
+            .OrderByDescending(c => (int)c.rank)
+            .ThenByDescending(c => (int)c.suit)
+            .ToList();
+
+        var opponentSorted = opponentCards
+            .OrderByDescending(c => (int)c.rank)
+            .ThenByDescending(c => (int)c.suit)
+            .ToList();
+
+        int n = System.Math.Min(playerSorted.Count, opponentSorted.Count);
+
+        for (int i = 0; i < n; i++)
+        {
+            // First compare rank
+            if (playerSorted[i].rank != opponentSorted[i].rank)
+            {
+                return playerSorted[i].rank.CompareTo(opponentSorted[i].rank);
+            }
+
+            // Same rank? Then compare suit
+            if (playerSorted[i].suit != opponentSorted[i].suit)
+            {
+                return playerSorted[i].suit.CompareTo(opponentSorted[i].suit);
+            }
+        }
+
+        // Perfect tie (basically impossible with a real deck)
+        return 0;
+    }
+
     public void Showdown()
     {
         uiManager.UpdateButtonStates(-1, players);
@@ -350,6 +385,8 @@ public class GameManager : MonoBehaviour
                 uiManager.opponentCards.Add(cardUI);    
             }
         }
+        var playerAllCards = GetAllCards(player.HoleCards);
+        var opponentAllCards = GetAllCards(opponent.HoleCards);
 
         var playerResult = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
         var opponentResult = PokerHandEvaluator.EvaluateBestHand(GetAllCards(opponent.HoleCards));
@@ -357,6 +394,13 @@ public class GameManager : MonoBehaviour
         int cmp = PokerHandEvaluator.Compare(playerResult, opponentResult);
 
         uiManager.ClearAllHighlight();
+
+        // If still equal, use suit order to decide winner
+        if (cmp == 0)
+        {
+            int suitCmp = CompareBySuit(playerAllCards, opponentAllCards);
+            cmp = suitCmp;
+        }
 
         if (cmp > 0)
         {
