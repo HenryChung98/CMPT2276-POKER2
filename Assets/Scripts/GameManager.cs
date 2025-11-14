@@ -390,31 +390,25 @@ public class GameManager : MonoBehaviour
         var playerResult = PokerHandEvaluator.EvaluateBestHand(playerAllCards);
         var opponentResult = PokerHandEvaluator.EvaluateBestHand(opponentAllCards);
 
+
+        bool sameCategory = playerResult.Rank == opponentResult.Rank;
+
         // primary comparison
         int cmp = PokerHandEvaluator.Compare(playerResult, opponentResult);
-
-        // whether to show yellow kickers
-        bool showKickersForPlayer = false;
-        bool showKickersForOpponent = false;
 
         // if same rank + same rank tiebreakers, use suit order to decide
         if (cmp == 0)
         {
             int suitCmp = CompareBySuit(playerAllCards, opponentAllCards);
-            if (suitCmp > 0)
+            if (suitCmp != 0)
             {
-                //show kickers for player
-                cmp = 1;
-                showKickersForPlayer = true;
+                cmp = suitCmp;   // suit actually decides the winner
             }
-            else if (suitCmp < 0)
-            {
-                //show kickers for opponent
-                cmp = -1;
-                showKickersForOpponent = true;
-            }
-            // else suitCmp == 0 ¡÷ true tie, leave cmp == 0
         }
+
+        //  show yellow kickers 
+        bool showKickersForPlayer = sameCategory && cmp > 0;
+        bool showKickersForOpponent = sameCategory && cmp < 0;
 
         uiManager.ClearAllHighlight();
 

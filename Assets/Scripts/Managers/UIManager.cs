@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Collections;
 using Unity.VisualScripting;
+using System.Linq;
 
 public class UIManager : MonoBehaviour
 {
@@ -152,19 +153,69 @@ public class UIManager : MonoBehaviour
         if (hand == null || result == null)
             return;
 
+        //check flush suit for this hand (if the result is a flush-type)
+        Suit? flushSuit = null;
+        if (result.Rank == HandRank.Flush ||
+            result.Rank == HandRank.StraightFlush ||
+            result.Rank == HandRank.RoyalFlush)
+        {
+            var suitCounts = new Dictionary<Suit, int>();
+
+            foreach (var cardUI in hand)
+            {
+                if (cardUI == null || cardUI.cardData == null) continue;
+
+                if (result.highlightedRank != null &&
+                    result.highlightedRank.Contains(cardUI.cardData.rank))
+                {
+                    var s = cardUI.cardData.suit;
+                    if (!suitCounts.ContainsKey(s))
+                        suitCounts[s] = 0;
+
+                    suitCounts[s]++;
+                }
+            }
+
+            if (suitCounts.Count > 0)
+            {
+                //suit that appears most often among the highlighted ranks ¡÷ the flush suit
+                flushSuit = suitCounts
+                    .OrderByDescending(kv => kv.Value)
+                    .First().Key;
+            }
+        }
+
+
         foreach (var cardUI in hand)
         {
-            if (cardUI.cardData == null)
+            if (cardUI == null || cardUI.cardData == null)
             {
-                Debug.Log("cardData is null");
                 continue;
             }
 
-            // main hand (always shown in green)
-            bool isMainHand = result.highlightedRank != null &&
-                              result.highlightedRank.Contains(cardUI.cardData.rank);
+            bool isMainHand;
 
-            // kicker cards (only when showKickers == true)
+            //For flush-type hands: require BOTH rank match & correct suit
+            if (flushSuit.HasValue &&
+                (result.Rank == HandRank.Flush ||
+                 result.Rank == HandRank.StraightFlush ||
+                 result.Rank == HandRank.RoyalFlush))
+            {
+                isMainHand =
+                    result.highlightedRank != null &&
+                    result.highlightedRank.Contains(cardUI.cardData.rank) &&
+                    cardUI.cardData.suit == flushSuit.Value;
+            }
+            else
+            {
+                //for all other hands, rank-only is fine (pairs, trips, etc.)
+                isMainHand =
+                    result.highlightedRank != null &&
+                    result.highlightedRank.Contains(cardUI.cardData.rank);
+            }
+
+
+            //kicker cards (only when showKickers == true)
             bool isKicker = showKickers &&
                             result.highlightedKickers != null &&
                             result.highlightedKickers.Contains(cardUI.cardData.rank);

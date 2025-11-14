@@ -317,7 +317,7 @@ public static class PokerHandEvaluator
                 Description = desc,
 
                 highlightedRank = new List<Rank> { pair.Rank },
-                highlightedKickers = null,
+                highlightedKickers = kickers,
             };
         }
 
