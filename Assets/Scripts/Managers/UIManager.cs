@@ -146,7 +146,7 @@ public class UIManager : MonoBehaviour
             card.Highlight(false);
     }
 
-    public void HighlightHand(Player player, PokerHandEvaluator.HandResult result)
+    public void HighlightHand(Player player, PokerHandEvaluator.HandResult result, bool showKickers)
     {
         List<CardUI> hand = player.IsHuman ? playerCards : opponentCards;
         if (hand == null || result == null)
@@ -158,25 +158,25 @@ public class UIManager : MonoBehaviour
             {
                 Debug.Log("cardData is null");
                 continue;
-            }                
-            // Check if card is part of the main hand (green)
+            }
+
+            // main hand (always shown in green)
             bool isMainHand = result.highlightedRank != null &&
                               result.highlightedRank.Contains(cardUI.cardData.rank);
 
-            // Check if card is a kicker (yellow)
-            bool isKicker = result.highlightedKickers != null &&
+            // kicker cards (only when showKickers == true)
+            bool isKicker = showKickers &&
+                            result.highlightedKickers != null &&
                             result.highlightedKickers.Contains(cardUI.cardData.rank);
 
             if (isMainHand)
             {
                 cardUI.Highlight(true, Color.green);
             }
-
             else if (isKicker)
             {
                 cardUI.Highlight(true, Color.yellow);
             }
-
             else
             {
                 cardUI.Highlight(false);

@@ -321,7 +321,6 @@ public class GameManager : MonoBehaviour
     // Spades > Hearts > Diamonds > Clubs
     private int CompareBySuit(List<CardData> playerCards, List<CardData> opponentCards)
     {
-        // Sort by rank high -> low, then by suit high -> low
         var playerSorted = playerCards
             .OrderByDescending(c => (int)c.rank)
             .ThenByDescending(c => (int)c.suit)
@@ -332,24 +331,24 @@ public class GameManager : MonoBehaviour
             .ThenByDescending(c => (int)c.suit)
             .ToList();
 
-        int n = System.Math.Min(playerSorted.Count, opponentSorted.Count);
+        int n = Mathf.Min(playerSorted.Count, opponentSorted.Count);
 
         for (int i = 0; i < n; i++)
         {
-            // First compare rank
             if (playerSorted[i].rank != opponentSorted[i].rank)
             {
+                // higher rank wins
                 return playerSorted[i].rank.CompareTo(opponentSorted[i].rank);
             }
 
-            // Same rank? Then compare suit
             if (playerSorted[i].suit != opponentSorted[i].suit)
             {
+                // same rank ¡÷ higher suit wins (Spades>Hearts>Diamonds>Clubs)
                 return playerSorted[i].suit.CompareTo(opponentSorted[i].suit);
             }
         }
 
-        // Perfect tie (basically impossible with a real deck)
+        // absolute tie (very rare)
         return 0;
     }
 
@@ -358,7 +357,6 @@ public class GameManager : MonoBehaviour
         uiManager.UpdateButtonStates(-1, players);
         uiManager.RevealCards(opponentCardsHolder);
 
-        
         uiManager.playerCards.Clear();
         uiManager.opponentCards.Clear();
 
@@ -381,26 +379,44 @@ public class GameManager : MonoBehaviour
             var cardUI = child.GetComponent<CardUI>();
             if (cardUI != null)
             {
-                uiManager.playerCards.Add(cardUI);    
-                uiManager.opponentCards.Add(cardUI);    
+                uiManager.playerCards.Add(cardUI);
+                uiManager.opponentCards.Add(cardUI);
             }
         }
+
         var playerAllCards = GetAllCards(player.HoleCards);
         var opponentAllCards = GetAllCards(opponent.HoleCards);
 
-        var playerResult = PokerHandEvaluator.EvaluateBestHand(GetAllCards(player.HoleCards));
-        var opponentResult = PokerHandEvaluator.EvaluateBestHand(GetAllCards(opponent.HoleCards));
+        var playerResult = PokerHandEvaluator.EvaluateBestHand(playerAllCards);
+        var opponentResult = PokerHandEvaluator.EvaluateBestHand(opponentAllCards);
 
+        // primary comparison
         int cmp = PokerHandEvaluator.Compare(playerResult, opponentResult);
 
-        uiManager.ClearAllHighlight();
+        // whether to show yellow kickers
+        bool showKickersForPlayer = false;
+        bool showKickersForOpponent = false;
 
-        // If still equal, use suit order to decide winner
+        // if same rank + same rank tiebreakers, use suit order to decide
         if (cmp == 0)
         {
             int suitCmp = CompareBySuit(playerAllCards, opponentAllCards);
-            cmp = suitCmp;
+            if (suitCmp > 0)
+            {
+                //show kickers for player
+                cmp = 1;
+                showKickersForPlayer = true;
+            }
+            else if (suitCmp < 0)
+            {
+                //show kickers for opponent
+                cmp = -1;
+                showKickersForOpponent = true;
+            }
+            // else suitCmp == 0 ¡÷ true tie, leave cmp == 0
         }
+
+        uiManager.ClearAllHighlight();
 
         if (cmp > 0)
         {
@@ -408,8 +424,7 @@ public class GameManager : MonoBehaviour
             Debug.Log($"You win! {playerResult.Description} beats {opponentResult.Description}. +{bettingManager.Pot} chips.");
             bettingManager.PayoutChips(player, bettingManager.Pot);
 
-            uiManager.HighlightHand(player, playerResult);
-            
+            uiManager.HighlightHand(player, playerResult, showKickersForPlayer);
         }
         else if (cmp < 0)
         {
@@ -417,18 +432,19 @@ public class GameManager : MonoBehaviour
             Debug.Log($"Opponent wins. {opponentResult.Description} beats {playerResult.Description}.");
             bettingManager.PayoutChips(opponent, bettingManager.Pot);
 
-            uiManager.HighlightHand(opponent, opponentResult);
+            uiManager.HighlightHand(opponent, opponentResult, showKickersForOpponent);
         }
         else
         {
+            //split pot, no yellow
             gameFlowManager.resultText.text = "Tie";
             Debug.Log($"Tie: {playerResult.Description} vs {opponentResult.Description}. Pot split.");
             int split = bettingManager.Pot / 2;
             bettingManager.PayoutChips(player, split);
             bettingManager.PayoutChips(opponent, bettingManager.Pot - split);
 
-            uiManager.HighlightHand(player, playerResult);
-            uiManager.HighlightHand(opponent, opponentResult);
+            uiManager.HighlightHand(player, playerResult, false);
+            uiManager.HighlightHand(opponent, opponentResult, false);
         }
 
         UpdateMoneyUI();

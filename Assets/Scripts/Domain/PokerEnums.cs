@@ -1,4 +1,4 @@
-public enum Suit { Clubs = 1, Diamonds, Hearts, Spades }
+public enum Suit { Clubs = 1, Diamonds = 2, Hearts = 3, Spades = 4 }
 public enum Rank { Two = 2, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace }
 
 public enum HandRank
