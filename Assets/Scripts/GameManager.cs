@@ -217,13 +217,14 @@ public class GameManager : MonoBehaviour
 
     private void HandleFold(Player folder, Transform cardsHolder)
     {
+        // move folded cards away & clear UI
         foldedCards.AddRange(folder.HoleCards);
         uiManager.ClearCardHolder(cardsHolder);
         folder.HoleCards.Clear();
         folder.HasFolded = true;
         Debug.Log($"{folder.Name} has folded.");
 
-        // check only one player remains / need to be optimized
+        // check if only one active player is left
         Player winner = GetSoleRemainingPlayer();
         if (winner != null)
         {
@@ -231,11 +232,27 @@ public class GameManager : MonoBehaviour
             bettingManager.PayoutChips(winner, bettingManager.Pot);
             UpdateMoneyUI();
             gameFlowManager.currentState = GameState.Showdown;
+
+            //New detailed end-of-round messages
+            if (folder == opponent && winner == player)
+            {
+                // opponent folded, human wins
+                gameFlowManager.resultText.text = "Opponent folded, you win";
+            }
+            else if (folder == player && winner == opponent)
+            {
+                // player folded, opponent wins
+                gameFlowManager.resultText.text = "You folded, opponent wins";
+            }
+            else
+            {
+                // fallback (just in case)
+                gameFlowManager.resultText.text = winner == player ? "You win" : "Opponent wins";
+            }
+
             gameFlowManager.ShowGameOverPanel();
-            gameFlowManager.resultText.text = folder == opponent ? "You Win" : "Opponent Win";
             return;
         }
-
     }
 
     // when only one player.HasFolded is false, return the player. else, return null
