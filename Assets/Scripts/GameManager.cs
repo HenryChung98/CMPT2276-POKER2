@@ -2,9 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using TMPro;
-using UnityEditor.Experimental.GraphView;
 using System.Collections;
-using static UnityEditor.U2D.ScriptablePacker;
 
 public class GameManager : MonoBehaviour
 {
