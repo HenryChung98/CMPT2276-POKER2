@@ -23,20 +23,25 @@ public class TutorialManager : MonoBehaviour
     public Image handRankImage;
     private Vector3 orginalScale;
     public GameObject Playerhand, CommunityCard;
+    public Button PlayButton;
 
+    [Header("Audio Handling")]
+    public Button prevButton;
+    public Button nextButton;
+    public AudioSource audioSource;
+    public AudioClip buttonSound;
 
     private void Start()
     {
         orginalScale = speechBubbleImage.transform.localScale;
         RenderTutorial();
-        
-
     }
     private void RenderTutorial()
     {
         handRankImage.gameObject.SetActive(false);
         Playerhand.gameObject.SetActive(false);
         CommunityCard.gameObject.SetActive(false);
+        PlayButton.gameObject.SetActive(false);
         speechBubbleText.SetText(dialogueLines[currentPage]);
 
         switch (currentPage)
@@ -93,9 +98,12 @@ public class TutorialManager : MonoBehaviour
                 Debug.Log("tenth page");
                 Playerhand.gameObject.SetActive(true);
                 CommunityCard.gameObject.SetActive(true);
+                PlayButton.gameObject.SetActive(true);
                 break;
 
         }
+        prevButton.interactable = currentPage > 0;
+        nextButton.interactable = currentPage < last;
         speechBubble.transform.position = objectTransforms[currentPage].position;
     }
 
@@ -104,11 +112,13 @@ public class TutorialManager : MonoBehaviour
         if (currentPage < last)
         {
             currentPage++;
+            audioSource.PlayOneShot(buttonSound);
             RenderTutorial();
         }
         else
         {
             Debug.Log("Already at last page");
+
         }
     }
 
@@ -117,6 +127,7 @@ public class TutorialManager : MonoBehaviour
         if (currentPage > first)
         {
             currentPage--;
+            audioSource.PlayOneShot(buttonSound);
             RenderTutorial();
         }
         else
