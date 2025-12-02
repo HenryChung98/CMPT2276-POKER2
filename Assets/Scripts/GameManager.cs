@@ -152,6 +152,7 @@ public class GameManager : MonoBehaviour
         UpdateMoneyUI();
         UpdateGuidebook();
         UpdateButtonStates();
+        uiManager.ResetWinProbability();
         Invoke(nameof(AIBehavior), delay);
     }
     // ============================= Update UIs =============================
@@ -193,7 +194,6 @@ public class GameManager : MonoBehaviour
         gameFlowManager.IncrementDealer();
         ClearAllCardHolders();
         audioSource.PlayOneShot(buttonSound);
-
         StartNewRound();
     }
 

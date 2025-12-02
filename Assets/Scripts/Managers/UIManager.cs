@@ -270,5 +270,10 @@ public class UIManager : MonoBehaviour
         else
             winProbabilityText.color = Color.red;
     }
-
+    public void ResetWinProbability()
+    {
+        if (winProbabilityText == null) return;
+        winProbabilityText.text = "Win Chance: --";
+        winProbabilityText.color = Color.white;
+    }
 }
