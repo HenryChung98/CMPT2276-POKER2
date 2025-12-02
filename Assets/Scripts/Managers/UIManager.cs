@@ -31,6 +31,10 @@ public class UIManager : MonoBehaviour
     public List<CardUI> playerCards = new List<CardUI>();
     public List<CardUI> opponentCards = new List<CardUI>();
 
+    [Header("Win Probability")]
+    public TextMeshProUGUI winProbabilityText;
+    private WinProbabilityCalculator probabilityCalculator;
+
 
 
     public void UpdateMoneyUI(int pot, int playerChips, int opponentChips)
@@ -234,6 +238,37 @@ public class UIManager : MonoBehaviour
             }
         }
     }
+    public void InitializeProbabilityCalculator(DeckManager deckManager)
+    {
+        probabilityCalculator = new WinProbabilityCalculator(deckManager);
+    }
 
+    public void UpdateWinProbability(List<CardData> playerHoleCards, List<CardData> communityCards)
+    {
+        if (winProbabilityText == null || probabilityCalculator == null) return;
+
+        // Only calculate if we have hole cards
+        if (playerHoleCards.Count < 2)
+        {
+            winProbabilityText.text = "Win Chance: --";
+            return;
+        }
+
+        float winProb = probabilityCalculator.CalculateWinProbability(
+            playerHoleCards,
+            communityCards,
+            simulations: 1000  
+        );
+
+        winProbabilityText.text = $"Win Chance: {winProb:P0}"; // Shows as "45%"
+
+        
+        if (winProb >= 0.7f)
+            winProbabilityText.color = Color.green;
+        else if (winProb >= 0.4f)
+            winProbabilityText.color = Color.yellow;
+        else
+            winProbabilityText.color = Color.red;
+    }
 
 }

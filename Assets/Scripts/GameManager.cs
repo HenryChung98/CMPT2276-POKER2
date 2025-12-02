@@ -112,6 +112,9 @@ public class GameManager : MonoBehaviour
         cardDealer = gameObject.AddComponent<CardDealer>(); 
         cardDealer.Initialize(deckManager, uiManager, delay);
 
+        // initialize winning probability
+        uiManager.InitializeProbabilityCalculator(deckManager);
+
     }
 
     void Start()
@@ -168,6 +171,12 @@ public class GameManager : MonoBehaviour
     {
         if (guidebookUI != null)
             guidebookUI.Refresh(GetPlayerAllCardsForUI());
+
+        // Update win probability after pre-flop 
+        if (player.HoleCards.Count == 2 && gameFlowManager.currentState != GameState.PreFlop)
+        {
+            uiManager.UpdateWinProbability(player.HoleCards, communityCardList);
+        }
     }
 
 
