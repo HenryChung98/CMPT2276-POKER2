@@ -8,11 +8,20 @@ public class CardDealer : MonoBehaviour
     private UIManager uiManager;
     private float delay;
 
-    public void Initialize(DeckManager deckManager, UIManager uiManager, float delay)
+    public AudioSource audioSource;
+    public AudioClip cardSound;
+
+    public void Initialize(DeckManager deckManager, UIManager uiManager, float delay, AudioClip cardSound)
     {
         this.deckManager = deckManager;
         this.uiManager = uiManager;
         this.delay = delay;
+        this.cardSound = cardSound;
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
     }
 
     public IEnumerator DealHoleCards(Player player, Transform playerHolder, Player opponent, Transform opponentHolder)
@@ -22,11 +31,13 @@ public class CardDealer : MonoBehaviour
             CardData playerCard = deckManager.DrawCard();
             player.HoleCards.Add(playerCard);
             uiManager.DisplayCard(playerCard, playerHolder, faceDown: false); // Face up
+            audioSource.PlayOneShot(cardSound);
             yield return new WaitForSeconds(delay);
 
             CardData opponentCard = deckManager.DrawCard();
             opponent.HoleCards.Add(opponentCard);
             uiManager.DisplayCard(opponentCard, opponentHolder, faceDown: true); // Face down!
+            audioSource.PlayOneShot(cardSound);
             yield return new WaitForSeconds(delay);
         }
     }
@@ -40,6 +51,7 @@ public class CardDealer : MonoBehaviour
             communityCardList.Add(card);
             uiManager.DisplayCard(card, communityHolder);
         }
+        audioSource.PlayOneShot(cardSound);
     }
 
     public void ClearAllCards(Player player, Player opponent, List<CardData> communityCardList, List<CardData> foldedCards,

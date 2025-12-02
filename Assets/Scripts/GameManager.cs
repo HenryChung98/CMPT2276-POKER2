@@ -45,11 +45,17 @@ public class GameManager : MonoBehaviour
     private CardDealer cardDealer;
     public GameFlowManager gameFlowManager;
 
+    // audios
+    public AudioSource audioSource;
+    public AudioClip callSound;
+    public AudioClip raiseSound;
+    public AudioClip foldSound;
+    public AudioClip buttonSound;
+    public AudioClip cardSound;
+
     // etc
     public bool isAnimating = false;
-
     public static GameManager Instance { get; private set; }
-
 
     // ============================ These are for debugging. we won't need these in the end ============================
     private void UpdateAutoPlayUI()
@@ -110,7 +116,7 @@ public class GameManager : MonoBehaviour
         
         // initialize dealer
         cardDealer = gameObject.AddComponent<CardDealer>(); 
-        cardDealer.Initialize(deckManager, uiManager, delay);
+        cardDealer.Initialize(deckManager, uiManager, delay, cardSound);
 
         // initialize winning probability
         uiManager.InitializeProbabilityCalculator(deckManager);
@@ -186,6 +192,8 @@ public class GameManager : MonoBehaviour
     {
         gameFlowManager.IncrementDealer();
         ClearAllCardHolders();
+        audioSource.PlayOneShot(buttonSound);
+
         StartNewRound();
     }
 
@@ -202,6 +210,7 @@ public class GameManager : MonoBehaviour
         {
             int amount = Mathf.Max(0, other.BetThisRound - caller.BetThisRound);
             bettingManager.Call(caller, amount);
+            audioSource.PlayOneShot(callSound);
             AdvanceTurn();
         }
         else
@@ -216,6 +225,7 @@ public class GameManager : MonoBehaviour
         {
             int amount = other.BetThisRound + Mathf.Max(bettingManager.bigBlind, other.BetThisRound);
             bettingManager.Raise(players, raiser, amount);
+            audioSource.PlayOneShot(raiseSound);
             AdvanceTurn();
         }
         else
@@ -229,6 +239,7 @@ public class GameManager : MonoBehaviour
         // move folded cards away & clear UI
         foldedCards.AddRange(folder.HoleCards);
         uiManager.ClearCardHolder(cardsHolder);
+        audioSource.PlayOneShot(foldSound);
         folder.HoleCards.Clear();
         folder.HasFolded = true;
         Debug.Log($"{folder.Name} has folded.");

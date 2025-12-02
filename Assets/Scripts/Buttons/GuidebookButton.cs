@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.Audio;
 
 public class GuidebookButton : MonoBehaviour
 {
@@ -8,11 +9,15 @@ public class GuidebookButton : MonoBehaviour
     private bool isOpen = false;
     private bool isAnimating = false;
 
+    public AudioSource audioSource;
+    public AudioClip buttonSound;
+
     public void ToggleGuidebook()
     {
         if (guidebook != null && !isAnimating)
         {
             StartCoroutine(AnimateGuidebook());
+            audioSource.PlayOneShot(buttonSound);
         }
     }
 
