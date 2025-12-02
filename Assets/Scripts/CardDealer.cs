@@ -21,16 +21,15 @@ public class CardDealer : MonoBehaviour
         {
             CardData playerCard = deckManager.DrawCard();
             player.HoleCards.Add(playerCard);
-            uiManager.DisplayCard(playerCard, playerHolder);
+            uiManager.DisplayCard(playerCard, playerHolder, faceDown: false); // Face up
             yield return new WaitForSeconds(delay);
 
             CardData opponentCard = deckManager.DrawCard();
             opponent.HoleCards.Add(opponentCard);
-            uiManager.DisplayCard(opponentCard, opponentHolder);
+            uiManager.DisplayCard(opponentCard, opponentHolder, faceDown: true); // Face down!
             yield return new WaitForSeconds(delay);
         }
     }
-
     public void DealCommunityCards(List<CardData> communityCardList, Transform communityHolder, int num)
     {
         if (communityCardList.Count >= 5) return;
