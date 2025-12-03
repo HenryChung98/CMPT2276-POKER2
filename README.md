@@ -4,8 +4,6 @@
 
 ---
 
-## Section 1: Final Prototype Features
-
 ### 1. Main Menu
 
 The poker game begins at a Main Menu Scene with two buttons:
